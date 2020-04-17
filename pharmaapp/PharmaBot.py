@@ -87,7 +87,7 @@ class PharmaBot(AbstractBot):
 
 	@app.route("/")
 	def index():
-		return render("index.html", title=PharmaBot.name+' v'+PharmaBot.version)
+		return render("index.html.jinja2")
 
 	@app.route("/privacy-policy")
 	@app.route("/politique-de-confidentialite")

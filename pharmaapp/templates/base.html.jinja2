@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		
+
+		<meta charset="utf-8">
+		<meta name="description" content="Chat Loop Apps Template from pixelstrap">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<meta name="keywords" content="chat chatbot conversation pharmacie garde cote d'ivoire abidjan">
+
+
+		<title>
+			{% block title %}
+				PharmaBot &mdash; Welcome
+			{% endblock %}
+		</title>
+
+
+		{% block stylesheets %}
+			<!-- favicon-->
+			<link rel="shortcut icon" href="{{ url_for('static', filename='site/assets/images/favicon.png') }}">
+			<!-- Font Family-->
+			<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
+			<!-- Bootstrap CSS-->
+			<link rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/bootstrap.min.css') }}">
+			<!-- Animation CSS-->
+			<link rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/animate.min.css') }}">
+			<!-- Owl carousel .css-->
+			<link rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/owl.carousel.min.css') }}">
+			<link rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/owl.theme.default.min.css') }}">
+			<!-- font-awesome css-->
+			<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+			<!-- swiper slider-->
+			<link rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/swiper.min.css') }}">
+			<!-- Style .css-->
+			<link id="color" rel="stylesheet" href="{{ url_for('static', filename='site/assets/css/color1.css') }}" media="screen">
+		{% endblock %}
+
+		
+	</head>
+  
+  	<body data-spy="scroll" data-target=".navbar" data-offset="75">
+
+  		<!-- loader-->
+	    <div class="loader-wrapper">
+	    	<div id="loader">
+	        	<div id="shadow"></div>
+	        	<div id="box"></div>
+	      	</div>
+	    </div>
+	    <!-- loader end-->
+
+	    {% include 'header.html.jinja2' %}
+
+		{% block body %}   
+
+		{% endblock %}
+
+		{% block footer %}
+			{% include 'footer.html.jinja2' %}
+		{% endblock %}
+
+		<div class="tap-top">
+      		<div><i class="fa fa-angle-up" aria-hidden="true"></i></div>
+    	</div>
+
+  		{% block javascripts %}
+			 <!-- js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/jquery-3.3.1.min.js') }}"></script>
+		    <!-- bootstrap js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/bootstrap.min.js') }}"></script>
+		    <!-- popper js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/popper.min.js') }}"></script>
+		    <!-- Owl carousel js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/owl.carousel.min.js') }}"></script>
+		    <!-- tilt js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/tilt.jquery.js') }}"></script>
+		    <!-- script js file-->
+		    <script src="{{ url_for('static', filename='site/assets/js/script.js') }}"></script>
+		    <!-- swiper js-->
+		    <script src="{{ url_for('static', filename='site/assets/js/swiper.min.js') }}"></script>
+		    <!--home page-->
+		    <script src="{{ url_for('static', filename='site/assets/js/scroll.js') }}"></script>
+		    <script src="{{ url_for('static', filename='site/assets/js/slider.js') }}"></script>
+		{% endblock %}
+
+  	</body>
+</html>
