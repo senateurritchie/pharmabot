@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+
+
+
+
+
+{% block body %}
+	<div class="bot-container shadow-sm d-flex flex-column">
+		<div class="bot-header bg-danger">
+			<i class="fas fa-robot --bot-icon mr-1"></i> 
+			<span class="--bot-name">
+				{{ title }}
+			</span>
+		</div>
+
+		<div class="bot-body flex-grow-1">
+			<div class="message">
+
+				<div class="message--icon badge badge-pill badge-info ">
+					<i class="fas fa-robot --bot-icon fa-2x"></i> 
+					&nbsp;
+				</div>
+
+				<div class="message--text">
+					
+					Bonjour, je peux vous aider à trouver une pharmacie de garde.
+				</div>
+			</div>
+
+			{#<div class="message right">
+
+				<div class="message--icon badge badge-pill badge-info ">
+					<i class="fas fa-user fa-2x"></i>
+					&nbsp;
+				</div>
+
+				<div class="message--text">
+					Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil dolorum ad itaque recusandae, quo quod, vitae ut modi sint dolorem corporis tempore vel ipsa repudiandae aperiam nulla dolor cum tempora.
+				</div>
+			</div>#}
+
+
+		</div>
+
+
+		<div class="bot-footer bg-light">
+			<textarea placeholder="Exprimez-vous..."></textarea>
+			<a href="" class="send">
+				<i class="fas text-info fa-2x fa-paper-plane"></i>
+			</a>
+		</div>
+		
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ super() }}
+	<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

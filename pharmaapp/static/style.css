@@ -1,0 +1,139 @@
+body{
+	background-color: #f2f2f2;
+	font-family: 'Open Sans', sans-serif;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 100vh
+}
+
+.bot-container{
+	background: #fff;
+	width: 320px;
+	height: 600px;
+	box-shadow: 1px 3px 5px #666;
+	display: flex;
+	flex-direction: column;
+}
+
+.bot-header	{
+	color: #fff;
+	padding: 5px;
+	display: flex;
+	flex-direction: row;
+	box-shadow: 0px 4px 5px #c6c6c6;
+}
+.bot-header	.--bot-icon{
+	font-size: 20px
+}
+.bot-header	.--bot-name{
+
+}
+
+.bot-header	.--bot-status{
+
+}
+
+
+.bot-footer{
+	height: 80px;
+	width: 100%;
+	box-shadow: 0px -2px 2px #f2f2f2;
+	position: relative;
+}
+
+.bot-footer textarea{
+	height: inherit;
+	width: inherit;
+	border: none;
+	background: transparent;
+	resize: none;
+	padding: 10px;
+	font-size: 14px;
+	padding-right: 60px;
+	font-weight: bold;
+	outline: none !important;
+}
+
+.bot-footer .send{
+	position: absolute;
+	right: 20px;
+	top: 20px;
+}
+
+.bot-body{
+	overflow-y: auto;
+	overflow-x: auto;
+}
+
+.bot-body .message{
+	display: flex;
+	flex-direction: row;
+	padding: 10px;
+	color: #fff;
+	word-break: break-word;
+}
+
+.bot-body .message .message--icon{
+	height: 40px !important;
+	width: 40px !important;
+	padding: 5px;
+}
+
+.bot-body .message .message--icon i{
+	margin-left: 4px;
+}
+
+.bot-body .message .message--icon i.fa-robot{
+	margin-left: 0px;
+}
+
+.bot-body .message .message--text{
+	border-radius: 5px;
+	font-size: 12px;
+	margin-left: 20px;
+	background-color: #17a2b8;
+	padding: 0 5px 5px 5px;
+	position: relative;
+	word-break: break-word;
+}
+
+.bot-body .message .message--text:before, .bot-body .message .message--text:after{
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 10px 10px 10px 0;
+	border-right-color: #17a2b8;
+	content: ' ';
+	position: absolute;
+	left: -8px;
+	top: 10px;
+}
+
+
+
+.bot-body .message.right{
+	flex-direction: row-reverse;
+	padding: 10px;
+}
+
+.bot-body .message.right .message--text{
+	margin-left: 0px;
+	margin-right: 20px;
+}
+
+
+.bot-body .message.right .message--text:before, .bot-body .message.right .message--text:after{
+	width: 0;
+	height: 0;
+	border-color: transparent;
+	border-style: solid;
+	border-width: 10px 0 10px 10px;
+	border-left-color: #17a2b8;
+	content: ' ';
+	position: absolute;
+	left: 100%;
+	top: 10px;
+}

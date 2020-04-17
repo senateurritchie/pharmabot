@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Webview Pharma Bot v1
+{% endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+
+{% endblock %}
+
+
+{% block body %}
+	<h1>Zacharie Assagou - webview</h1>
+{% endblock %}
+
+{% block javascripts %}
+	{{ super() }}
+	<script>
+		(function(d, s, id){
+  			var js, fjs = d.getElementsByTagName(s)[0];
+  			if (d.getElementById(id)) {return;}
+  			js = d.createElement(s); js.id = id;
+  			js.src = "//connect.facebook.net/en_US/messenger.Extensions.js";
+  			fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'Messenger'));
+
+		window.extAsyncInit = function() {
+  			// the Messenger Extensions JS SDK is done loading 
+		};
+
+		function closeWebview(onsuccess,onerror){
+			MessengerExtensions.requestCloseBrowser(onsuccess,onerror);
+		}
+	</script>
+{% endblock %}
