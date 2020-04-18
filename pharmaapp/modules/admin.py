@@ -18,10 +18,10 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 client = pymongo.MongoClient(DATABASE_URL)
-db = client.jamiibot
+db = client.pharma_garde
 
 @bp.route("/", methods=('GET',))
-@is_granted("role_super_admin")
+@is_granted("role_admin")
 @login_guard
 def index():
 	"""
@@ -54,40 +54,10 @@ def index():
 				"as":"tickets"
 			}
 		},
-		{
-			"$lookup":{
-				"from":"denunciation",
-				"let":{"user_id":"$_id"},
-				"pipeline":[
-					{ 
-						"$match":{
-							"$expr":{
-	                         	"$and":[
-	                         		{"$eq": [ "$user_id",  "$$user_id" ]},
-	                         		{"$eq": [ "$state",  "submited" ]},
-	                         	]
-	                    	}
-	                 	}
-	              	},
-	              	{
-                 		"$group":{
-                 			"_id":None,
-                 			"total":{"$sum":1}
-                 		}
-	                },
-	                {"$project":{"_id":0}}
-				],
-				"as":"denunciations"
-			}
-		},
 		{"$addFields":{"tickets":{"$arrayElemAt":["$tickets",0]}}},
 		{"$addFields":{"tickets":"$tickets.total"}},
-		{"$addFields":{"denunciations":{"$arrayElemAt":["$denunciations",0]}}},
-		{"$addFields":{"denunciations":"$denunciations.total"}},
-		{"$match":{"$or":[{"denunciations":{"$gt":0}},{"tickets":{"$gt":0}}]}},
-		{"$sort":{"denunciations":-1,"tickets":-1}},
+		{"$sort":{"last_presence":-1}},
 		{"$limit":10},
-
 	])
 
 	data_users = [i for i in data_users]
@@ -148,7 +118,7 @@ def users():
 		# {"$addFields":{"tickets":{"$arrayElemAt":["$tickets",0]}}},
 		# {"$addFields":{"tickets":"$tickets.total"}},
 		{"$sort":{"_id":-1}},
-		{"$limit":20}
+		{"$limit":50}
 	])
 
 	data = [i for i in data]
@@ -159,6 +129,463 @@ def users():
 
 	return render('admin/users-index.html', data=data)
 
+@bp.route("/quizz", methods=('GET','POST'))
+@is_granted("role_super_admin")
+@login_guard
+def quizz():
+	"""
+	onglet de gestion des quizz 
+	"""
+	data = db.quizz.aggregate([
+		{"$sort":{"_id":-1}},
+		{"$limit":20}
+	])
+
+	data = [i for i in data]
+
+	return render('admin/quizz-index.html.jinja2', data=data)
+
+@bp.route("/quizz/<quizz_id>", methods=('GET',))
+@is_granted("role_super_admin")
+@login_guard
+def get_quizz(quizz_id):
+	"""
+	on recherche un quizz
+	"""
+	survey = db.quizz.find_one({"_id":ObjectId(quizz_id)})
+
+	if survey is None:
+		return abort(404)
+
+	del survey["users"]
+	del survey["create_by"]
+	del survey["create_at"]
+
+	r = response(json.dumps(survey, default=json_util.default))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+@bp.route("/quizz/<quizz_id>/questions/<question_id>/save", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_question_save(quizz_id,question_id):
+	"""
+	on met a jour un question d'un quizz
+	"""
+	survey_id = ObjectId(quizz_id)
+	question_id = ObjectId(question_id)
+	payload = request.form["payload"]
+	result = {"status":False}
+
+	if len(payload.strip()):
+		survey = db.quizz.find_one({"_id":quizz_id})
+
+		if survey:
+			for question in survey["questions"]:
+				if question["_id"] == question_id:
+					question["payload"] = payload
+					result["_id"] = str(question["_id"])
+					break
+
+			db.quizz.update_one({
+				"_id":quizz_id
+			},{
+				"$set":{
+					"questions":survey["questions"]
+				}
+			})
+
+			result["status"] = True
+	else:
+		result["logs"] = "veuiller saisir la question svp"
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/questions/<question_id>/delete", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_question_delete(quizz_id,question_id):
+	"""
+	suppresion d'une question dans un quizz
+	"""
+
+	quizz_id = ObjectId(quizz_id)
+	question_id = ObjectId(question_id)
+	result = {"status":False}
+
+	survey = db.quizz.find_one({"_id":quizz_id})
+
+	if survey:
+		for i,question in enumerate(survey["questions"]):
+			if question["_id"] == question_id:
+				answered = [oo for oo in question['choices'] if oo["answers"]]
+				if len(answered) > 0:
+					result["logs"] = "Impossible de supprimer cette question, des utilisateurs y ont déja repondu"
+					break
+
+				del survey["questions"][i]
+
+				db.quizz.update_one({
+					"_id":quizz_id
+				},{
+					"$set":{
+						"questions":survey["questions"]
+					}
+				})
+
+				result["status"] = True
+
+				break
+
+		
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/questions/add", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_question_add(quizz_id):
+	"""
+	pour ajouter une question à un quizz
+	"""
+	
+	quizz_id = ObjectId(quizz_id)
+	result = {"status":False}
+
+	survey = db.quizz.find_one({"_id":quizz_id})
+
+	if survey:
+		result["choice_ids"] = []
+
+		questions = []
+		has_error = False
+		for i,v in enumerate(request.form.getlist('question')):
+			if not v.strip():
+				result["logs"] = "veuiller saisir la question svp"
+				has_error = True
+				continue
+
+			question = {
+				"_id":ObjectId(),
+				"type":"text",
+				"payload":v,
+				"is_required":True,
+				"choices":[]
+			}
+
+			result["_id"] = str(question["_id"])
+
+			for ii,vv in enumerate(request.form.getlist('response[{}]'.format(i+1))):
+				if not vv.strip():
+					result["logs"] = "veuiller saisir la reponse {} svp".format(ii+1)
+					has_error = True
+					break
+
+				choice_id = ObjectId()
+				question["choices"].append({
+					"_id":choice_id,
+					"type":"text",
+					"payload":vv,
+					"answers":0
+				})
+				result["choice_ids"].append(str(choice_id))
+
+			if len(question["choices"]) and has_error == False:
+				survey["questions"].append(question)
+
+				db.quizz.update_one({
+					"_id":quizz_id
+				},{
+					"$set":{
+						"questions":survey["questions"]
+					}
+				})
+
+				result["status"] = True
+				break
+		
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/<response_id>/save", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_response_save(quizz_id,question_id,response_id):
+	"""
+	on met a jour la reponse d'une question d'un quizz
+	"""
+
+	quizz_id = ObjectId(quizz_id)
+	question_id = ObjectId(question_id)
+	response_id = ObjectId(response_id)
+	payload = request.form["payload"]
+	result = {"status":False}
+
+	if len(payload.strip()):
+		survey = db.quizz.find_one({"_id":quizz_id})
+
+		if survey is None:
+			return abort(404)
+
+		isexists = False
+		for question in survey["questions"]:
+			if question["_id"] == question_id:
+				for choice in question["choices"]:
+					if choice["_id"] == response_id:
+						choice["payload"] = payload
+						isexists = True
+						result["_id"] = str(choice["_id"])
+						break
+				break
+
+		if isexists:
+			db.quizz.update_one({
+				"_id":quizz_id
+			},{
+				"$set":{
+					"questions":survey["questions"]
+				}
+			})
+
+			result["status"] = True
+	else:
+		result["logs"] = "veuiller saisir la reponse svp"
+
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/<response_id>/delete", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_response_delete(quizz_id,question_id,response_id):
+	"""
+	on supprime une reponse a une question d'un quizz
+	"""
+
+	quizz_id = ObjectId(quizz_id)
+	question_id = ObjectId(question_id)
+	response_id = ObjectId(response_id)
+	result = {"status":False}
+
+	survey = db.quizz.find_one({"_id":quizz_id})
+
+	if survey is None:
+		return abort(404)
+
+	isexists = False
+	for question in survey["questions"]:
+		if question["_id"] == question_id:
+			if len(question["choices"]):
+				result["logs"] = "Une question doit avoir mininum 2 propositions de reponse"
+				break
+			for i,choice in enumerate(question["choices"]):
+				if choice["_id"] == response_id:
+					del question["choices"][i]
+					isexists = True
+					break
+			break
+
+	if isexists:
+		db.quizz.update_one({
+			"_id":quizz_id
+		},{
+			"$set":{
+				"questions":survey["questions"]
+			}
+		})
+		result["status"] = True
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/add", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_response_add(quizz_id,question_id):
+	"""
+	on ajoute une reponse à une question d'un quizz
+	"""
+	quizz_id = ObjectId(quizz_id)
+	question_id = ObjectId(question_id)
+	payload = request.form["payload"]
+	result = {"status":False}
+
+	if len(payload.strip()):
+		survey = db.quizz.find_one({"_id":quizz_id})
+
+		if survey is None:
+			return abort(404)
+
+		isexists = False
+		for question in survey["questions"]:
+			if question["_id"] == question_id:
+				_id = ObjectId()
+				question["choices"].append({
+					"_id":_id,
+					"type":"text",
+					"payload":payload,
+					"answers":0
+				})
+				result["_id"] = str(_id)
+				isexists = True
+				break
+
+		if isexists:
+			db.quizz.update_one({
+				"_id":quizz_id
+			},{
+				"$set":{
+					"questions":survey["questions"]
+				}
+			})
+			result["status"] = True
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+@bp.route("/quizz/<quizz_id>/save", methods=('POST',))
+@bp.route("/quizz/save", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_save(quizz_id=None):
+	"""
+	ajouter un quizz
+	"""
+	
+	quizz_id = quizz_id if quizz_id is not None else request.form.get("quizz_id",None)
+	title = request.form.get("title","").strip()
+	is_active = request.form.get("is_active",False)
+	is_active = True if is_active == "on" else is_active
+	is_stick = request.form.get("is_stick",False)
+	is_stick = True if is_stick == "on" else is_stick
+	slug = slugify(title)
+
+	if len(title) == 0:
+		if request.is_xhr:
+			return "",200
+
+		flash("attention, veuiller saisir le titre du sondage",'danger')
+		return redirect(url_for("admin.quizz"))
+
+	if quizz_id is not None:
+		survey = db.quizz.find_one({"_id":ObjectId(quizz_id)})
+
+		if survey is None:
+			return abort(404)
+
+		db.quizz.update_one({
+				"_id":survey["_id"]
+			},
+			{
+				"$set":{
+					"title":title,
+					"slug":slug,
+					"is_active":is_active,
+					"is_stick":is_stick,
+				}
+			}
+		)
+	else:
+		survey = db.quizz.find_one({"slug":slugify(title)})
+
+		if survey is not None:
+			if request.is_xhr:
+				return "",200
+
+			flash("attention, ce quizz existe déla",'danger')
+			return redirect(url_for("admin.quizz"))
+
+		else:
+
+			questions = []
+
+			for i,v in enumerate(request.form.getlist('question')):
+				question = {
+					"_id":ObjectId(),
+					"type":"text",
+					"payload":v,
+					"is_required":True,
+					"choices":[]
+				}
+
+				for ii,vv in enumerate(request.form.getlist('response[{}]'.format(i+1))):
+					question["choices"].append({
+						"_id":ObjectId(),
+						"type":"text",
+						"payload":vv,
+						"answers":0
+					})
+
+				questions.append(question)
+
+			_id = db.quizz.insert_one({
+				"create_by":g.user["_id"],
+				"title":title,
+				"slug":slug,
+				"welcome_text":None,
+				"end_text":None,
+				"is_active":is_active,
+				"is_stick":is_stick,
+				"is_closed":False,
+				"create_at":datetime.datetime.utcnow(),
+				"users":[],
+				"questions":questions,
+			}).inserted_id
+
+	if request.is_xhr:
+		return "",200
+
+	flash("l'opération à bien été effectuée avec succes",'info')
+
+	return redirect(url_for("admin.quizz"))
+
+
+@bp.route("/quizz/delete", methods=('POST',))
+@is_granted("role_super_admin")
+@login_guard
+def quizz_delete():
+	"""
+	supprimer un quizz
+	"""
+	quizz_id = ObjectId(request.form["quizz_id"])
+	survey = db.quizz.find_one({"_id":quizz_id})
+
+	if survey is None:
+		return abort(404)
+
+	if len(survey["users"]) > 0:
+		flash("attention ce sondage ne peut pas être supprimé car il a {} participants a son actif".format(len(survey['users']) ),'danger')
+	else:
+		db.quizz.delete_one({"_id":quizz_id})
+		flash("le sondage à bien été supprimé avec succes",'info')
+
+	return redirect(url_for("admin.quizz"))
+
+
+
+
+#######################################################""
 
 @bp.route("/surveys", methods=('GET','POST'))
 @is_granted("role_super_admin")

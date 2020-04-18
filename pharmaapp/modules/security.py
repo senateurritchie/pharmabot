@@ -18,7 +18,7 @@ role_hierachy = {
 }
 
 client = pymongo.MongoClient(DATABASE_URL)
-db = client.jamiibot
+db = client.pharma_garde
 
 
 

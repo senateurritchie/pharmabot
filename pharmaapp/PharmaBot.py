@@ -44,6 +44,8 @@ from .modules.admin import bp as adminBP
 
 app = Flask(__name__)
 
+app.secret_key = b"v\xa1\x16\xfd\xcb\xa4\x97'\x94\xb7\x04\xa5\xb4H\xcc\x16m\xc6\xc0\xef\x97^\xdeF"
+app.config['MAX_CONTENT_LENGTH'] = 700 * 1024 * 1024
 app.register_blueprint(securBP)
 app.register_blueprint(adminBP)
 
@@ -96,6 +98,10 @@ class PharmaBot(AbstractBot):
 	@app.route("/")
 	def index():
 		return render("index.html.jinja2")
+
+	@app.route("/coming-soon")
+	def coming_soon():
+		return render("coming-soon.html.jinja2")
 
 	@app.route("/privacy-policy")
 	@app.route("/politique-de-confidentialite")
@@ -152,7 +158,11 @@ class PharmaBot(AbstractBot):
 
 	@app.errorhandler(404)
 	def view404(error):
-		return render("404.html.jinja2"),200
+		return render("404.html.jinja2"),404
+
+	@app.errorhandler(403)
+	def view403(error):
+		return render("403.html.jinja2"),403
 
 	@app.errorhandler(500)
 	def view500(error):

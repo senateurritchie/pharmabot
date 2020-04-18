@@ -1,0 +1,797 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    PharmaBot &mdash; Gestion de quizz
+{% endblock %}
+
+{% block stylesheets %}
+    {{ super() }}
+
+    <style>
+        .question-item {
+            background: #fafafa;
+            padding: 15px;
+        }
+
+        .question-item .question-toolbar, .question-item .response-toolbar, .parametres-container .setting-toolbar{
+            display: none;
+        }
+
+
+        .question-item.has-update .question-toolbar, .response-item.has-update .response-toolbar, .parametres-container.has-update .setting-toolbar{
+            display: block;
+        } 
+
+        
+    </style>
+{% endblock %}
+
+
+{% block modals %}
+    <!-- Modal insertion -->
+    <form action="{{ url_for('admin.survey_save') }}" method="POST" class="modal fade" id="modal-insert" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ajouter un quizz</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <h4>Paramètres</h4>
+                    <hr>
+
+                    <div class="form-group" style="position:relative">
+                        <label for="searchBox">Titre:</label>
+                        <input required="" name="title" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le titre du quizz">
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_active" type="checkbox" id="exampleCustomCheckbox" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox">
+                                publier
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_stick" type="checkbox" id="exampleCustomCheckbox2" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox2">
+                                à l'affiche
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <h4>Questions</h4>
+                    <hr>
+                    <div class="questions-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary mr-auto question-add-btn" >
+                        <i class="fa fa-plus"></i> Ajouter une question
+                    </button>
+
+                    <button type="submit" class="btn btn-dark">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal suppression -->
+    <form action="{{ url_for('admin.survey_delete') }}" method="POST" class="modal fade" id="modal-remove" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">confirmation...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                   <h6>Voulez-vous vraiment supprimer le quizz: « <span class="survey-name"></span> » ?</h6>
+                   <input type="hidden" name="survey_id">
+                </div>
+
+                <div class="modal-footer">
+                    <button data-dismiss="modal" type="submit" class="btn btn-dark">Non</button>
+                    <button type="submit" class="btn btn-dark">Oui</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal update -->
+    <div class="modal fade" id="modal-update" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">modification...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <h5>Paramètres</h5>
+                    <hr>
+
+                    <div class="parametres-container">
+
+                        <div class="form-group" style="position:relative">
+                            <label for="searchBox">Titre:</label>
+                            <input required="" name="title" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le titre du quizz">
+                        </div>
+
+                        <div class="form-group" style="position:relative">
+                            <div class="custom-checkbox custom-control">
+                                <input name="is_active" type="checkbox" id="exampleCustomCheckbox22" class="custom-control-input">
+                                <label class="custom-control-label" for="exampleCustomCheckbox22">
+                                    publier
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="position:relative">
+                            <div class="custom-checkbox custom-control">
+                                <input name="is_stick" type="checkbox" id="exampleCustomCheckbox33" class="custom-control-input">
+                                <label class="custom-control-label" for="exampleCustomCheckbox33">
+                                    à l'affiche
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="setting-toolbar my-2">
+                            <button type="button" class="btn btn-sm btn-primary" >
+                                Enregistrer
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <input type="hidden" name="survey_id">
+                    
+                    <hr>
+                    <h5>Questions</h5>
+                    <hr>
+                    <div class="questions-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary mr-auto question-add-btn">
+                        <i class="fa fa-plus"></i> Ajouter une question
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block body %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>
+                    Gestion des quizz
+                    <div class="page-title-subheading">
+                    	ce espace permet de voir et manipuler les quizz sur le chatbot
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-title-actions">
+                
+                <button type="button" class="btn-shadow mr-3 btn btn-dark" data-toggle="modal" data-target="#modal-insert">
+                    <i class="fa fa-plus"></i> nouveau quizz
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    {% for category,message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{category}}">
+            <i class="fa fa-{{ 'info-circle' if category == 'info' else 'exclamation-triangle' }}"></i>
+            {{ message }}
+            
+        </div>
+    {% endfor %}
+
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <h5 class="card-title">Tout les quizz</h5>
+            <table class="mb-0 table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th class="text-center">Questions</th>
+                        <th class="text-center">Sondés</th>
+                        <th class="text-center">Etat</th>
+                        <th class="text-center">Ajouté le...</th>
+                        <th class="text-center">Heure</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for el in data %}
+                    <tr data-ref="{{ el._id }}" data-active="{{ 1 if el.is_active else 0 }}" data-stick="{{ 1 if el.is_stick else 0 }}">
+                        <th scope="row">
+                            {{ loop.index }}
+                        </th>
+
+                        <td class="tool-delete">
+                            <a href="">
+                                <i class="metismenu-icon pe-7s-trash"></i>
+                            </a>
+                        </td>
+                        <td class="survey-name">
+                            <a href="">
+                                {{ el.title|title}}
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="">
+                                <span class="badge badge-primary">{{ el.questions|length}}</span>
+                            </a>
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge badge-primary">{{ el.users|length}}</span>
+                        </td>
+
+                         <td class="text-center">
+                            <span class="badge badge-primary">{{ 'publié' if el.is_active else 'depublié'}}</span>
+                        </td>
+
+                        <td class="text-center">
+                            {{ el.create_at.strftime("%d %b %Y")}}
+                        </td>
+
+                        <td class="text-center">
+                            {{ el.create_at.strftime("%H:%M") if el.create_at else '-' }}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="text/template" id="question-tpl">
+        <div class="question-item mb-4">
+            <div class="form-group" style="position:relative">
+                <label for="question__index__">Question __index__</label>
+                <input required="" name="question" autocomplete="off" type="text" class="form-control" id="question__index__" placeholder="Saisir la question __index__">
+            </div>
+            
+            <h6>Reponses</h6>
+            <div class="form-group responses-container"></div>
+
+            <a href="" class="insert">
+                <i class="fa fa-plus"></i> ajouter une reponse
+            </a>
+
+            <a href="" class="delete float-right text-danger">
+                <i class="fa fa-trash"></i> supprimer la question
+            </a>
+
+            <div class="logs"></div>
+        </div>
+        
+    </script>
+
+    <script type="text/template" id="response-tpl">
+        <div class="response-item mb-3">
+            <div class="input-group">
+
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <input name="response_check[__index__]" type="checkbox" >
+                    </div>
+                </div>
+
+                <input required="" name="response[__index__]" placeholder="saisir une reponse..." type="text" class="form-control form-control-sm" />
+
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-sm btn-light">
+                       <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <textarea placeholder="Saisir un message une fois cette reponse selectionnée" name="autoresponder[__index__]" id="" class="form-control form-control-sm" style="width:100%"></textarea>
+            </div>
+        </div>
+    </script>
+
+</div>
+{% endblock %}
+
+
+
+{% block javascripts %}
+    {{ super() }}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <script>
+
+        jQuery(document).ready(function($){
+
+            // gestion des suppression d'operateurs
+            // on fait une delegation d'evenement pour tout
+            // les bouton qui ont une classe = data-item
+            // 
+            var modalInsert = $('#modal-insert');
+            var modalRemove = $('#modal-remove');
+            var modalUpdate = $('#modal-update');
+            
+            modalInsert.on('show.bs.modal', function () {
+                setTimeout(function(){
+                    modalInsert.find('input[name=title]').trigger("focus")
+                },500);
+            })
+
+            var modalUpdateSetting = modalUpdate.find(".parametres-container");
+            var setting_toolbar = modalUpdateSetting.find(".setting-toolbar");
+            let setting_toolbar_btn = setting_toolbar.find("button");
+
+            setting_toolbar_btn.on("click",function(e){
+
+                modalUpdateSetting.removeClass("has-update");
+                let survey_id = modalUpdate.find("input[name=survey_id]").val();
+
+                let data = {
+                    "title":modalUpdateSetting.find("input[name=title]").val()
+                }
+
+                if(modalUpdateSetting.find("input[name=is_active]").prop("checked")){
+                    data["is_active"] = "on";
+                }
+
+                if(modalUpdateSetting.find("input[name=is_stick]").prop("checked")){
+                    data["is_stick"] = "on";
+                }
+
+                $.ajax({
+                    url:"survey/"+survey_id+"/save",
+                    method:"POST",
+                    data:data,
+                    dataType:"json",
+                    success:function(data){
+
+                    },
+                });
+            });
+
+            modalUpdateSetting.find("input").on("change keydown", function(e){
+                if(e.type == "keydown"){
+                    if(e.keyCode == 27){
+                        modalUpdateSetting.removeClass("has-update")
+                    }
+                    else{
+                        modalUpdateSetting.addClass("has-update")
+                    }
+                }
+                else{
+                    modalUpdateSetting.addClass("has-update")
+                }
+            })
+
+
+            function add_question(modal,data){
+                let tpl = $("#question-tpl").html();
+                let rtpl = $("#response-tpl").html();
+
+                let question_container =  modal.find(".questions-container");
+                let question_count = question_container.find("div.question-item").length;
+                let current_index = question_count+1;
+                tpl = tpl.replace(/__index__/ig,current_index);
+                tpl = $(tpl);
+                let question_input = tpl.find("input[name=question]");
+
+
+                if(modal.attr("id") == "modal-update"){
+
+                    let toolbar = $(`
+                        <div class="question-toolbar mt-2">
+                            <button type="button" class="btn btn-sm btn-primary" >
+                                Enregistrer
+                            </button>
+                        </div>
+                    `);
+                    question_input.after(toolbar);
+
+                    question_input.on("keydown",function(e){
+
+                        if(tpl.data("ref")){
+                            if(e.keyCode == 27){
+                                tpl.removeClass("has-update")
+                            }
+                            else{
+                                tpl.addClass("has-update")
+                            }
+                        }
+                        
+                    });
+
+                    let toolbar_btn = toolbar.find("button");
+                    toolbar_btn.on("click",function(e){
+
+                        let survey_id = modal.find("input[name=survey_id]").val();
+                        let question_id = tpl.data("ref");
+
+                        $.ajax({
+                            url:"surveys/"+survey_id+"/questions/"+question_id+"/save",
+                            method:"POST",
+                            dataType:"json",
+                            data:{"payload":question_input.val()},
+                            success:function(data){
+
+                                if(data.status){
+                                    tpl.removeClass("has-update");
+                                }
+
+                                if(data.logs){
+                                    let logs = tpl.find(".logs");
+                                    logs
+                                    .html(data.logs)
+                                    .addClass("alert alert-danger");
+
+                                    setTimeout(function(){
+                                        logs
+                                        .removeClass("alert alert-danger")
+                                        .html("")
+                                    },5000)
+                                }
+                            }
+                        });
+                    });
+                }
+
+                if(data){
+                    question_input.val(data.payload);
+                    tpl.attr("data-ref",data._id["$oid"]);
+                }
+
+                let btn_add = tpl.find("a.insert");
+                let btn_delete = tpl.find("a.delete");
+
+                btn_add.on({
+                    click:function(e,choice){
+                        e.preventDefault();
+                        let response_container = tpl.find(".responses-container");
+                        let response_count = response_container.find("div.response-item").length;
+                        let item = rtpl.replace(/__index__/ig,current_index);
+                        item = $(item);
+                        let btn_rem = item.find("button");
+
+                        // suppression d'une reponse
+                        btn_rem.on({
+                            click:function(e){
+                                response_count = response_container.find("div.response-item").length;
+                                if(response_count > 1){
+
+                                    if(modal.attr("id") == "modal-update" && tpl.data("ref") && item.data("ref")){
+
+                                        let survey_id = modal.find("input[name=survey_id]").val();
+                                        let question_id = tpl.data("ref");
+                                        let response_id = item.data("ref");
+
+                                        let url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/"+response_id+"/delete";
+
+                                        $.ajax({
+                                            url:url,
+                                            method:"POST",
+                                            dataType:"json",
+                                            success:function(data){
+
+                                                if(data.status){
+                                                    item.remove();
+                                                }
+
+                                                if(data.logs){
+                                                    let logs = tpl.find(".logs");
+                                                    logs
+                                                    .html(data.logs)
+                                                    .addClass("alert alert-danger");
+
+                                                    setTimeout(function(){
+                                                        logs
+                                                        .removeClass("alert alert-danger")
+                                                        .html("")
+                                                    },5000)
+                                                }
+                                            },
+                                        
+                                        });
+
+                                    }
+                                    else{
+                                        item.remove();
+                                    }
+                                }
+                                
+                            }
+                        });
+
+                        let input_payload = item.find("input[type=text]");
+
+                        if(modal.attr("id") == "modal-update"){
+
+                            input_payload.on("keydown",function(e){
+                                if(tpl.data("ref")){
+                                    if(e.keyCode == 27){
+                                        item.removeClass("has-update")
+                                    }
+                                    else{
+                                        item.addClass("has-update")
+                                    }
+                                }
+                            });
+
+                            let toolbar = $(`
+                                <div class="response-toolbar my-2">
+                                    <button type="button" class="btn btn-sm btn-primary" >
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            `);
+                            item.append(toolbar)
+
+                            let toolbar_btn = toolbar.find("button");
+                            toolbar_btn.on("click",function(e){
+
+                                let survey_id = modal.find("input[name=survey_id]").val();
+                                let question_id = tpl.data("ref");
+                                let response_id = item.data("ref");
+                                let url = "";
+
+                                if(response_id){
+                                    url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/"+response_id+"/save";
+                                }
+                                else{
+                                    url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/add";
+                                }
+
+                                $.ajax({
+                                    url:url,
+                                    method:"POST",
+                                    dataType:"json",
+                                    data:{payload:input_payload.val()},
+                                    success:function(data){
+
+                                        if(data.status){
+                                            item.removeClass("has-update");
+                                        }
+
+                                        if(!response_id){
+                                            item.attr("data-ref",data._id)
+                                        }
+
+                                        if(data.logs){
+                                            let logs = tpl.find(".logs");
+                                            logs
+                                            .html(data.logs)
+                                            .addClass("alert alert-danger");
+
+                                            setTimeout(function(){
+                                                logs
+                                                .removeClass("alert alert-danger")
+                                                .html("")
+                                            },5000)
+                                        }
+                                    },
+                                
+                                });
+                            });
+                        }
+
+                        if(choice){
+                            input_payload.val(choice.payload)
+                            item.attr("data-ref",choice._id["$oid"]);
+                        }
+
+                        response_container.append(item);
+                    }
+                })
+    
+                // supression d'une question
+                btn_delete.on({
+                    click:function(e){
+                        e.preventDefault();
+                        question_count = question_container.find("div.question-item").length;
+                        if(question_count > 1){
+
+                            if(tpl.data("ref")){
+
+                                let survey_id = modal.find("input[name=survey_id]").val();
+                                let question_id = tpl.data("ref");
+                                let url = "surveys/"+survey_id+"/questions/"+question_id+"/delete";
+
+                                $.ajax({
+                                    url:url,
+                                    method:"POST",
+                                    dataType:"json",
+                                    success:function(data){
+                                        if(data.status){
+                                            tpl.remove();
+                                        }
+
+                                        if(data.logs){
+                                            let logs = tpl.find(".logs");
+                                            logs
+                                            .html(data.logs)
+                                            .addClass("alert alert-danger");
+
+                                            setTimeout(function(){
+                                                logs
+                                                .removeClass("alert alert-danger")
+                                                .html("")
+                                            },5000)
+                                        }
+                                    },
+                                });
+                            }
+                            else{
+                                tpl.remove();
+                            }
+
+
+                        }
+                    }
+                })
+
+                question_container.append(tpl);
+
+
+                if(modal.attr('id') == "modal-update" && !tpl.data("ref")){
+                    let toolbar = $(`
+                        <div class="my-2">
+                            <button type="button" class="btn btn-sm btn-danger" >
+                                Enregistrer cette question
+                            </button>
+                        </div>
+                    `);
+                    tpl.append(toolbar)
+
+                    toolbar.find("button").on("click",function(e){
+                        e.preventDefault();
+
+                        let survey_id = modal.find("input[name=survey_id]").val();
+                        let url = "surveys/"+survey_id+"/questions/add";
+                        tpl.wrap('<form method="POST"></form>')
+                        let payload = tpl.parent().serialize();
+                        tpl.unwrap();
+
+                        payload = payload.replace(/%5B(.+?)%5D/ig,"%5B1%5D")
+
+                        $.ajax({
+                            url:url,
+                            method:"POST",
+                            dataType:"json",
+                            data:payload,
+                            success:function(data){
+                                if(!tpl.data("ref") && data.status){
+                                    toolbar.remove();
+
+                                    tpl.attr("data-ref",data._id);
+
+                                    tpl.find(".response-item").each(function(pos,el){
+                                        $(this).attr("data-ref",data.choice_ids[pos])
+                                    })
+                                }
+
+
+                                if(data.logs){
+                                    let logs = tpl.find(".logs");
+                                    logs
+                                    .html(data.logs)
+                                    .addClass("alert alert-danger");
+
+                                    setTimeout(function(){
+                                        logs
+                                        .removeClass("alert alert-danger")
+                                        .html("")
+                                    },5000)
+                                }
+                            },
+                        
+                        });
+                    })
+                }
+
+                if(data){
+                    for (i in data.choices){
+                        btn_add.trigger("click",data.choices[i]);
+                    }
+
+                }
+                else{
+                    btn_add.click();
+                    btn_add.click();
+                    btn_add.click();
+                }
+            }
+
+            $(".question-add-btn").on("click",function(e){
+                e.preventDefault();
+                add_question($(e.target).parents(".modal"));
+            })
+
+
+
+
+            $("body").on("click",".tool-delete",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+
+                modalRemove.find("input[type=hidden]").val(tr.data('ref'))
+                modalRemove.find("span.survey-name").html(tr.find("td.survey-name").text())
+                modalRemove.modal('show');
+            })
+
+            $("body").on("click",".survey-name",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+
+                setTimeout(function(){
+                    modalUpdate.find('input[name=title]').val(tr.find("td.survey-name").text().trim())
+                    modalUpdate.find('input[name=is_active]').prop({"checked":tr.data('active') == 1 ? true : false})
+                    modalUpdate.find('input[name=is_stick]').prop({"checked":tr.data('stick') == 1 ? true : false})
+                    modalUpdate.find("input[name=survey_id]").val(tr.data('ref'))
+
+                },500);
+
+                $.ajax({
+                    url:"surveys/"+tr.data('ref'),
+                    dataType:"json",
+                    method:"GET",
+                    success:function(data){
+
+                        modalUpdate.find(".questions-container").html("");
+
+                        for (i in data.questions){
+                            add_question(modalUpdate,data.questions[i]);
+                        }
+                    },
+                    error:function(a,b,c){
+                        
+                    },
+                    complete:function(){
+                        
+                    }
+                });
+
+                modalUpdate.modal('show');
+            })
+            
+
+        });
+    </script>
+{% endblock %}

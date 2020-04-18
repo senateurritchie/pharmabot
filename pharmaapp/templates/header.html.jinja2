@@ -13,12 +13,32 @@
 
         <div class="collapse navbar-collapse" id="mainmenu">
             <ul class="navbar-nav ml-auto" id="mymenu">
-                <li class="nav-item"><a class="nav-link" href="/#home">Accueil</a></li>
+                
+
+                <li class="nav-item"><a class="nav-link" href="/#work">Comment ça marche</a></li>
                 <li class="nav-item"><a class="nav-link" href="/#feature">Fonctionnalités</a></li>
-                <li class="nav-item"><a class="nav-link" href="/#screenshots">Démonstration</a></li>
                 
                 <li class="nav-item">
                     <a class="nav-link" href="/#contact">Nos contacts</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="{{ url_for('coming_soon') }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Business
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('coming_soon') }}">
+                                Visibilité
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('coming_soon') }}">
+                                Etude de marché
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </div>

@@ -22,30 +22,40 @@
             <div class="text-center">
                 <h2>Espace d'administration</h2>
                 <div class="line"></div>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-danger">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
                 <p>
 
                 </p>
             </div>
         
             <div class="main">
-                <form class="auth-form text-left">
+                <form method="POST" action="{{ url_for('security.login') }}" class="auth-form text-left">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Email</label>
                         <i class="fa fa-envelope"></i>
-                        <input class="form-control" id="exampleInputEmail1" required="" name="_username" type="email" placeholder="Email">
+                        <input class="form-control" id="exampleInputEmail1" required="" name="username" type="email" placeholder="Email">
                     </div>
 
                     <div class="form-group">
                         <label for="exampleInputPassword1">Password</label>
                         <i class="fas fa-lock"></i>
-                        <input class="form-control" id="exampleInputPassword1" required="" name="_password" type="password" placeholder="Password">
+                        <input class="form-control" id="exampleInputPassword1" required="" name="password" type="password" placeholder="Password">
                     </div>
             
                     <div class="form-group">
                         <button class="btn submit" type="submit">Connexion</button>
                     </div>
             
-                   
                 </form>
             </div>
         </div>

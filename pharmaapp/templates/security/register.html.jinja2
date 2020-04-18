@@ -1,118 +1,74 @@
-{% extends 'base.html' %}
+{% extends 'base.html.jinja2' %}
 
 {% block title %}
-	JamiiBot &mdash; ajouter un administrateur
+	PharmaBot &mdash; se creer un compte d'administrateur
 {% endblock %}
 
 {% block stylesheets %}
 	{{ super() }}
+{% endblock %}
 
-	<style>
-		body{
-			overflow-x: hidden;
-		}
-
-		input{
-			outline: none;
-		}
-	</style>
+{% block header %}  
+    {% set nav_class = 'darkHeader' %}
+    {% include 'header.html.jinja2' %}
 {% endblock %}
 
 {% block body %}
-	<div class="container-fluid p-0">
 
-		<header>
-		
-			<nav class="navbar navbar-expand-lg navbar-light bg-light">
-			   <a class="navbar-brand" href="#">
-			    <img src="{{ url_for('static', filename='admin/assets/images/logo-inverse.png')}}" alt="">
-			  </a>
+	<section class="auth-page">
+      	<div class="animation-circle-inverse"><i></i><i></i><i></i></div>
+      	<div class="animation-circle"><i></i><i></i><i></i></div>
+      	<div class="auth-card">
+        	<div class="text-center">
+          		<h2>Ajouter un administrateur</h2>
+          		<div class="line"></div>
+          		{% with messages = get_flashed_messages() %}
+					{% if messages %}
+				    	{% for message in messages %}
+					    	<div class="alert alert-danger">
+					    		{{ message }}
+					    	</div>
+				    	{% endfor %}
+				  	{% endif %}
+				{% endwith %}
+          		<p>
+          			
+          		</p>
+        	</div>
+        
+        	<div class="main">
+	          	<form method="POST" action="{{ url_for('security.register') }}" class="auth-form">
+	            	<div class="form-group">
+	              		<label for="exampleInputname">Nom compet</label>
+	              		<i class="fa fa-user"></i>
+	              		<input class="form-control" id="exampleInputname" required="" name="username" type="text" placeholder="Nom compet">
+	            	</div>
+	            
+	            	<div class="form-group">
+	              		<label for="exampleInputEmail1">Email</label>
+	              		<i class="fa fa-envelope"></i>
+	              		<input class="form-control" id="exampleInputEmail1" required="" name="email" type="email" placeholder="Adresse mail">
+	            	</div>
+	            
+	            	<div class="form-group">
+	              		<label for="exampleInputPassword1">Mot de passe</label>
+	              		<i class="fa fa-lock"></i>
+	              		<input class="form-control" id="exampleInputPassword1" required="" name="password" type="password" placeholder="Mot de passe">
+	            	</div>
 
-			  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			    <span class="navbar-toggler-icon"></span>
-			  </button>
-
-			  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-			   	{#<ul class="navbar-nav ml-auto">
-			    	<li class="nav-item active">
-			        	<a class="nav-link" href="#">Accueil <span class="sr-only">Accueil</span></a>
-			      	</li>
-
-			      	<li class="nav-item">
-			        	<a class="nav-link" href="#">A propos</a>
-			     	</li>
-
-			     	<li class="nav-item">
-			        	<a class="nav-link" href="#">Contacts</a>
-			     	</li>
-			    </ul>#}
-			  </div>
-			</nav>
-		</header>
-
-		<div class="row  p-4">
-			<div class="col-md-9">
-				<div class="row">
-
-					<div class="col-md-5">
-						<h4>Notre mission</h4>
-
-						<small class="text-dark">
-							<div>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, qui maxime, eum reiciendis officia nobis optio, reprehenderit modi numquam voluptatibus maiores? Quas excepturi amet asperiores numquam, laudantium possimus, blanditiis dolor!</div>
-							<br>
-							<div>Alias fugiat voluptates molestias quibusdam! Eum recusandae exercitationem, a reiciendis quos est, tempora officiis aliquid autem, quibusdam facere. Distinctio praesentium deserunt ab vitae fugit ducimus nihil temporibus ut hic perspiciatis!</div>
-						</small>
-
-						<img src="{{ url_for('static', filename='badge.jpg')}}" alt="">
-
-					</div>
-
-					<div class="col-md-7">
-						<img class="w-100" src="{{ url_for('static', filename='lmdp.jpg')}}" alt="">
-					</div>
-
-				
-				</div>
-			</div>
-
-			<div class="col-md-3">
-				<div class="card">
-					<div class="card-body">
-				    	<h5 class="card-title">Création de compte</h5>
-				    	<form method="POST">
-							<div class="form-group">
-						    	<label for="exampleInputUsername"><small>Nom d'utilisateur</small></label>
-						    	<input required name="username" type="text" class="form-control form-control-sm" id="exampleInputUsername" aria-describedby="emailHelp">
-						  	</div>
-
-						  	<div class="form-group">
-						    	<label for="exampleInputEmail1"><small>Votre email</small></label>
-						    	<input required name="email" type="email" class="form-control form-control-sm" id="exampleInputEmail1" aria-describedby="emailHelp">
-						  	</div>
-						  
-						  	<div class="form-group">
-						    	<label for="exampleInputPassword1"><small>Mot de passe</small></label>
-						    	<input required name="password" type="password" class="form-control form-control-sm" id="exampleInputPassword1">
-						  	</div>
-
-						  	<div class="form-group">
-						    	<label for="exampleInputPassword2"><small>Confirmation du mot de passe</small></label>
-						    	<input required name="cpassword" type="password" class="form-control form-control-sm" id="exampleInputPassword2">
-						  	</div>
-						  	
-						  	<button type="submit" class="btn btn-sm btn-primary">
-						  		Enregistrer
-						  	</button>
-
-						  	<a href="{{ url_for('security.login') }}" class="btn btn-sm btn-primary float-right">
-						  		<i class="fa fa-user"></i> Se connecter
-						  	</a>
-						</form>
-				  	</div>
-				</div>
-
-				
-			</div>
-		</div>
-	</div>
+	            	<div class="form-group">
+	              		<label for="exampleInputPassword2">Confirmation</label>
+	              		<i class="fa fa-lock"></i>
+	              		<input class="form-control" id="exampleInputPassword2" required="" name="cpassword" type="password" placeholder="Confirmer le mot de passe">
+	            	</div>
+	            
+	            	<div class="form-group">
+	              		<button class="btn submit" type="submit">
+	              			Enregistrer
+	              		</button>
+	            	</div>
+	          	</form>
+        	</div>
+      	</div>
+    </section>
 {% endblock %}

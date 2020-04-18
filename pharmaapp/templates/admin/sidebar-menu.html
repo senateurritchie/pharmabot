@@ -48,40 +48,26 @@
 
                 </li>
 
-                <li class="app-sidebar__heading">Gestion des utilisateurs</li>
-
                 <li>
 
                     <a href="{{ url_for('admin.users') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.users' else '' }}">
                         <i class="metismenu-icon pe-7s-users"></i>
                         Utilisateurs
                     </a>
-                </li>
-
-                <li class="app-sidebar__heading">Gestion des sondages</li>
-
-                <li>
 
                     <a href="{{ url_for('admin.surveys') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.surveys' else '' }}">
                         <i class="metismenu-icon pe-7s-graph3"></i>
                         Sondages
                     </a>
-                </li>
 
-                
-
-                <li class="app-sidebar__heading">Gestion de crises</li>
-
-                <li>
-
-                    <a href="{{ url_for('admin.crisis') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis' else '' }}">
-                        <i class="metismenu-icon pe-7s-server"></i>
-                        Crises
+                    <a href="{{ url_for('admin.quizz') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.quizz' else '' }}">
+                        <i class="metismenu-icon pe-7s-graph3"></i>
+                        Quizz
                     </a>
 
                     <a href="{{ url_for('admin.crisis_operators') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis_operators' else '' }}">
                         <i class="metismenu-icon pe-7s-headphones"></i>
-                        Opérateurs
+                        Conseillers clientèles
                     </a>
 
                     <a href="{{ url_for('admin.crisis_tickets') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis_tickets' else '' }}">
@@ -89,24 +75,8 @@
                         Tickets
                     </a>
 
-                   
-                </li>
-                
-                <li class="app-sidebar__heading">Denonciations</li>
-
-                <li>
-                    <a href="{{ url_for('admin.denunciations') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.denunciations' else '' }}">
-                        <i class="metismenu-icon pe-7s-server"></i>
-                        Données
-                    </a>
                 </li>
 
-                <li>
-                    <a href="{{ url_for('admin.denunciation_tags') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.denunciation_tags' else '' }}">
-                        <i class="metismenu-icon pe-7s-ribbon"></i>
-                        Etiquêtes
-                    </a>
-                </li>
                 
             </ul>
         </div>

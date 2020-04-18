@@ -1,0 +1,36 @@
+{% extends "base.html.jinja2" %}
+
+{% block title %}
+    PharmaBot &mdash; Page introuvable
+{% endblock %}
+
+{% block header %}  
+    {% set nav_class = 'darkHeader' %}
+    {% include 'header.html.jinja2' %}
+{% endblock %}
+
+
+{% block body %}
+    <section class="p-0">
+        <div class="auth-page error-main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="text-center">
+                            <h2 class="error-font">4<span>0</span>3</h2>
+                            <h2 class="f-bold">Oops! Vous n'êtes pas autorisé à acceder à cette zone</h2>
+                            <div class="col-lg-8 offset-lg-2 col-12">
+                                <h4>
+                                    Merci de contacter votre administrateur systeme.
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="animation-circle-inverse"><i></i><i></i><i></i></div>
+            <div class="animation-circle absolute"><i></i><i></i><i></i></div>
+        </div>
+    </section>
+
+{% endblock %}
