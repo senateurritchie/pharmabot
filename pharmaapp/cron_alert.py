@@ -8,15 +8,14 @@ from slugify import slugify
 from .FBSend import FBSend
 import logging
 
+DATABASE_URL = os.environ["DATABASE_URL"]
+client = pymongo.MongoClient(DATABASE_URL)
+db = client.pharma_garde
+
 fbsend = FBSend()
 
 logging.basicConfig(level=logging.DEBUG)
 
-logging.debug("Creation du Client Mongo")
-client = pymongo.MongoClient()
-logging.debug("Creation du Client Mongo reussi")
-
-db = client.pharma_garde
 logging.debug("Recuperation de la periode de garde en cours")
 
 period = db.garde_period.find_one({

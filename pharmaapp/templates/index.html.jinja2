@@ -26,22 +26,26 @@
                         <div class="slide-text">
                             <div>
                                 <h1>
-                                    The best way to connect with your friends is with
-                                    <span class="main-title">  ChatLoop!</span>
+                                    Nous vous servons le tour de gardes des pharmacies avec 
+                                    <span class="main-title">  PharmaBot!</span>
                                 </h1>
                                 <h4>
-                                    Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                                    Actu santé, sondages, centre d'écoute, les professionnels de la santé se rapprochent de vous.
                                 </h4>
 
                                 <div class="slid-btn">
                                     <a href="#">
-                                        <img class="img-fluid" src="{{ url_for('static', filename='site/assets/images/app1.png') }}" alt="app1" data-tilt="" data-tilt-perspective="50" data-tilt-speed="350" data-tilt-max="1.8">
+                                        <img class="img-fluid" src="{{ url_for('static', filename='messenger.png') }}" alt="messenger" data-tilt="" data-tilt-perspective="50" data-tilt-speed="350" data-tilt-max="1.8">
                                     </a>
 
                                     <a href="#">
-                                        <img class="img-fluid" src="{{ url_for('static', filename='site/assets/images/app2.png') }}" alt="app2" data-tilt="" data-tilt-perspective="50" data-tilt-speed="350" data-tilt-max="1.8">
+                                        <img class="img-fluid" src="{{ url_for('static', filename='whatsapp.png') }}" alt="whatsapp" data-tilt="" data-tilt-perspective="50" data-tilt-speed="350" data-tilt-max="1.8">
                                     </a>
                                 </div>
+
+                                <span class="d-inline-block text-white fw-3 font-italic mt-3">
+                                    * Disponible sur Messenger et bientôt sur Whatsapp
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -79,64 +83,61 @@
     </section>
     <!-- end slider section-->
 
-    <!-- about section-->
-    <section class="pb-0 about" id="about">
-        <div class="about-chat">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12 text-center">
-                        <div class="section-title">
-                            <h2> About Chat Loop</h2>
-                            <div class="line"></div>
-                        </div>
-                    </div>
-            
-                    <div class="col-md-12 about-box">
-                        <div class="row">
-                            <div class="col-lg-3 col-sm-6 about-border">
-                                <div class="chat-box">
-                                    <img src="{{ url_for('static', filename='site/assets/images/stay-connected.png') }}" alt="stay-connected">
-                                    <h3 class="sub-title">Stay Connected</h3>
-                                </div>
-                            </div>
-                
-                            <div class="col-lg-3 col-sm-6 about-border">
-                                <div class="chat-box">
-                                    <img src="{{ url_for('static', filename='site/assets/images/get-notified.png') }}" alt="get-notified">
-                                    <h3 class="sub-title"> Get Notified</h3>
-                                </div>
-                            </div>
-                
-                            <div class="col-lg-3 col-sm-6 about-border">
-                                <div class="chat-box">
-                                    <img src="{{ url_for('static', filename='site/assets/images/stay-updated.png') }}" alt="stay-updated">
-                                    <h3 class="sub-title">Stay Updated</h3>
-                                </div>
-                            </div>
-                
-                            <div class="col-lg-3 col-sm-6">
-                                <div class="chat-box">
-                                    <img src="{{ url_for('static', filename='site/assets/images/mini-world.png') }}" alt="mini-world">
-                                    <h3 class="sub-title">Mini World</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-            
-                    <div class="col-md-12">
-                        <div class="chat-slide">
-                            <h3>Connect with People all over the world , with your small device</h3>
-                        </div>
+    <!-- work section-->
+    <section class="work" id="work">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 offset-md-2 text-center">
+                    <div class="section-title">
+                        <h2>Comment ça marche?</h2>
+                        <div class="line"></div>
+                        <p>
+                            
+                        </p>
                     </div>
                 </div>
             </div>
-        </div>
+        
+            <div class="row">
+                <div class="col-lg-4 text-center">
+                    <div class="process-box">
+                        <i class="fas fa-cloud-download-alt fa-5x"></i>
+                        <h3>Installation</h3>
+                        <p>
+                            rien à installer, dans votre application messenger faites une recherche avec le mot-clé "Pharma Garde" 
+                        </p>
+                    </div>
+                </div>
 
-        <div class="container-fluid text-center">
-            <img class="img-fluid full-banner" src="{{ url_for('static', filename='site/assets/images/banner.png') }}" alt="banner.png">
+                <div class="col-lg-4 text-center">
+                    <div class="process-box">
+                        <i class="fas fa-handshake fa-5x"></i>
+                        <h3>Demarrer</h3>
+                        <p>
+                            Une fois le profil du chatbot trouvé cliques sur le bouton "Demarrer" 
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 text-center">
+                    <div class="process-box">
+                        <i class="fas fa-comments fa-5x"></i>
+                        <h3>C'est parti</h3>
+                        <p>
+                            Selectionnes parmi les menu disponibles action à executer... 
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-0 mt-3">
+                <button class="btn-theme" type="button">
+                    Essayer maintenant
+                </button>
+            </div>
         </div>
     </section>
-    <!-- end about section-->
+    <!-- end work section-->
 
 
     <!-- Feature section-->
@@ -149,7 +150,7 @@
             <div class="row">
                 <div class="col-md-12 text-center">
                     <div class="section-title">
-                        <h2 class="text-white">Chat Loop Feature</h2>
+                        <h2 class="text-white">Ce que nous offrons</h2>
                         <div class="line white"></div>
                     </div>
                 </div>
@@ -159,24 +160,23 @@
                         <div class="future-timeline">
                             <ul>
                                 <li class="timeline">
-                                    <h4 class="sub-title">Easy Installation</h4>
-                                    <p>Lorem Ipsum has been the industry's</p>
+                                    <h4 class="sub-title">Pharmacies de garde</h4>
+                                    <p>vous êtes informé en temps réel</p>
+                                </li>
+
+                                <li class="timeline">
+                                    <h4 class="sub-title">Sondages</h4>
+                                    <p>Face aux questionnaires institutionnels et rigides, la discussion se positionne comme un échange ludique, user friendly et personnalisé</p>
                                 </li>
                   
                                 <li class="timeline">
-                                    <h4 class="sub-title">Multi Platform Chat App</h4>
-                                    <p>Lorem Ipsum has been the industry's</p>
+                                    <h4 class="sub-title">Actu santé</h4>
+                                    <p>recevez l'actualité local et inter</p>
                                 </li>
                   
-                                <li class="timeline">
-                                    <h4 class="sub-title">Secure Backup & Recovery</h4>
-                                    <p>Many desktop publishing packages</p>
-                                </li>
+                               
                   
-                                <li class="timeline">
-                                    <h4 class="sub-title">Easy File Sharing</h4>
-                                    <p>Lorem Ipsum has been the industry's</p>
-                                </li>
+                                
                             </ul>
                         </div>
                     </div>
@@ -190,23 +190,25 @@
                     <div class="future-box">
                         <div class="future-timeline-right">
                             <ul class="text-left">
+
                                 <li class="timeline-right">
-                                    <h4>Easy Installation</h4>
-                                    <p>Lorem Ipsum has been the industry's</p>
+                                    <h4>Quizz</h4>
+                                    <p>
+                                       mettez à l'epreuve vos connaissances lors de nos quizz
+                                    </p>
                                 </li>
+                                
                   
                                 <li class="timeline-right">
-                                    <h4>Multi Platform Chat App</h4>
-                                    <p>Lorem Ipsum has been the industry's</p>
+                                    <h4>Centre d'écoute</h4>
+                                    <p>
+                                        Vous voulez parler a un medecin ? fini les files d'attentes, nos conseillers clientèles vous prennent en main jusqu'a l'obtention un rendez-vous.
+                                    </p>
                                 </li>
+                
                   
                                 <li class="timeline-right">
-                                    <h4>Secure Backup & Recovery</h4>
-                                    <p>Many desktop publishing packages</p>
-                                </li>
-                  
-                                <li class="timeline-right">
-                                    <h4>Easy File Sharing</h4>
+                                    <h4>Newsletter</h4>
                                     <p>Lorem Ipsum has been the industry's</p>
                                 </li>
                             </ul>
@@ -219,94 +221,10 @@
     <!-- end Feature section-->
 
 
-    <!-- work section-->
-    <section class="work" id="work">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8 offset-md-2 text-center">
-                    <div class="section-title">
-                        <h2>How chatloop Work</h2>
-                        <div class="line"></div>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rem autem voluptatem obcaecati!
-                            ipsum dolor sit Rem autem voluptatem obcaecati
-                        </p>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="row">
-                <div class="col-lg-4 text-center">
-                    <div class="process-box">
-                        <h3>download app</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Molestias non nulla placeat, odio</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 text-center">
-                    <div class="process-box">
-                        <h3>conect people</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Molestias non nulla placeat, odio</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 text-center">
-                    <div class="process-box">
-                        <h3>enjoy app</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Molestias non nulla placeat, odio</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- end work section-->
-
-
-    <section class="theme-bg screenshots" id="screenshots">
-        <div class="animation-circle"><i></i><i></i><i></i></div>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12 text-center">
-                    <div class="section-title">
-                        <h2 class="text-white">Chat Loop Screen Shot</h2>
-                        <div class="line white"></div>
-                    </div>
-                </div>
-            </div>
     
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="swiper-screenshots-container-1 swiper-container">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/1.png') }}" alt="1">
-                            </div>
 
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/2.png') }}" alt="2">
-                            </div>
 
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/3.png') }}" alt="3">
-                            </div>
-
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/4.png') }}" alt="4">
-                            </div>
-
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/1.png') }}" alt="5">
-                            </div>
-
-                            <div class="swiper-slide">
-                                <img src="{{ url_for('static', filename='site/assets/images/ss/2.png') }}" alt="5">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    
     
     <!-- FAQ section-->
     <section class="theme-bg faq" id="faq">
@@ -314,7 +232,7 @@
             <div class="row">
                 <div class="col-md-12 text-center">
                     <div class="section-title">
-                        <h2 class="text-white">Frequently asked Question</h2>
+                        <h2 class="text-white">FAQ</h2>
                         <div class="line white"></div>
                     </div>
                 </div>
@@ -327,7 +245,7 @@
                             <div class="card-header" id="headingzero">
                                 <h5 class="mb-0">
                                     <button class="faq-link" type="button" data-toggle="collapse" data-target="#collapsezero" aria-expanded="false" aria-controls="collapsezero">
-                                        01 We're ready to start now
+                                        Question 1
                                         <i class="fa fa-angle-down pull-right"></i>
                                     </button>
                                 </h5>
@@ -345,7 +263,7 @@
                             <div class="card-header" id="headingOne">
                                 <h5 class="mb-0">
                                     <button class="faq-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        02 Sedeiusmod tm inccsetetur ?
+                                        Question 2
                                         <i class="fa fa-angle-down pull-right"></i>
                                     </button>
                                 </h5>
@@ -362,7 +280,7 @@
                             <div class="card-header" id="headingTwo">
                                 <h5 class="mb-0">
                                     <button class="faq-link" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        03 Sedeiusmod inc aliquatraiy?
+                                        Question 3
                                         <i class="fa fa-angle-down pull-right"></i>
                                     </button>
                                 </h5>
@@ -379,7 +297,7 @@
                             <div class="card-header" id="headingThree">
                                 <h5 class="mb-0">
                                     <button class="faq-link" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                        04 Tempor inc aliquatraiy?
+                                        Question 4
                                         <i class="fa fa-angle-down pull-right"></i>
                                     </button>
                                 </h5>
@@ -408,30 +326,30 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="section-title">
-                        <h2>Get In Touch</h2>
+                        <h2>Nous écrire</h2>
                     </div>
             
                     <form class="auth-form">
                         <div class="form-group">
-                            <label for="exampleInputName1">Name</label>
+                            <label for="exampleInputName1">Nom complet</label>
                             <i class="fa fa-user"></i>
-                            <input class="form-control" id="exampleInputName1" required="" name="login[username]" type="email" placeholder="User name">
+                            <input class="form-control" id="exampleInputName1" required="" name="login[username]" type="email" placeholder="Nom complet">
                         </div>
 
                         <div class="form-group">
                             <label for="exampleInputEmail12">Email</label>
-                            <i class="fa fa-envelope-o"></i>
+                            <i class="fas fa-envelope"></i>
                             <input class="form-control" id="exampleInputEmail12" required="" name="login[email]" type="email" placeholder="Email">
                         </div>
               
                         <div class="form-group">
-                            <label>Your message</label>
-                            <i class="fa fa-commenting-o"></i>
-                            <textarea class="form-control" id="message" name="message" cols="30" rows="10" placeholder="Your Message"></textarea>
+                            <label>Message</label>
+                            <i class="fas fa-comment"></i>
+                            <textarea class="form-control" id="message" name="message" cols="30" rows="10" placeholder="Votre Message"></textarea>
                         </div>
               
                         <div class="form-group mb-0">
-                            <button class="btn-theme" type="submit">Send Message</button>
+                            <button class="btn-theme" type="submit">Envoyer le message</button>
                         </div>
                     </form>
                 </div>
@@ -439,7 +357,7 @@
 
                 <div class="col-md-6">
                     <div class="section-title">
-                        <h2>Contact Info</h2>
+                        <h2>Nos contacts</h2>
                     </div>
             
                     <p>Lorem ipsum dolor sit amet, consecte adipisicing elit sed do eiusmod tempor incididunt.</p>
@@ -450,7 +368,7 @@
                             </div>
                 
                             <div class="contact-text">
-                                <h3>Location</h3>
+                                <h3>Adresse géographique</h3>
                                 <p>123 Business Avenue, Hoston, USA</p>
                             </div>
                         </li>
@@ -461,7 +379,7 @@
                             </div>
                 
                             <div class="contact-text">
-                                <h3>Call US</h3>
+                                <h3>Appellez-nous</h3>
                                 <p>+91 123-456-7890</p>
                             </div>
                         </li>
@@ -472,8 +390,8 @@
                             </div>
                 
                             <div class="contact-text">
-                                <h3>Email Us</h3>
-                                <p>support@gmail.com</p>
+                                <h3>Ecrivez nous à</h3>
+                                <p>support@pharmabot.ci</p>
                             </div>
                         </li>
                     </ul>
@@ -489,15 +407,15 @@
             <div class="row">
                 <div class="col-sm-12 col-lg-4">
                     <div class="subscribe">
-                        <h3>Subscribe to Newsletter</h3>
+                        <h3>Abonnez-vous à la newsletter</h3>
                     </div>
                 </div>
           
                 <div class="col-sm-12 col-lg-8">
                     <div class="email-box">
                         <form class="auth-form needs-validation" id="mc-embedded-subscribe-form" action="https://pixelstrap.us19.list-manage.com/subscribe/post?u=5a128856334b598b395f1fc9b&amp;id=082f74cbda" method="post" name="mc-embedded-subscribe-form" target="_blank">
-                            <input class="form-control" id="mce-EMAIL" name="EMAIL" placeholder="Your email address:" type="email" required="required">
-                            <button class="btn btn-email" id="mc-submit" type="submit">Subscribe</button>
+                            <input class="form-control" id="mce-EMAIL" name="EMAIL" placeholder="Votre adresse email" type="email" required="required">
+                            <button class="btn btn-email" id="mc-submit" type="submit">S'abonner</button>
                         </form>
                     </div>
                 </div>

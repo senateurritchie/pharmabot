@@ -6,11 +6,11 @@ from slugify import slugify
 import os
 import requests
 import datetime
-
 from .EventDispatcher import EventDispatcher
 
 
-client = pymongo.MongoClient()
+DATABASE_URL = os.environ["DATABASE_URL"]
+client = pymongo.MongoClient(DATABASE_URL)
 db = client.pharma_garde
 
 class ContextUser(EventDispatcher):

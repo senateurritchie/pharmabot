@@ -21,6 +21,10 @@ import argparse
 
 from .EventDispatcher import EventDispatcher,Event
 
+DATABASE_URL = os.environ["DATABASE_URL"]
+client = pymongo.MongoClient(DATABASE_URL)
+db = client.pharma_garde
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -81,8 +85,6 @@ class OfficineUpdater(EventDispatcher):
 	def createOfficialPharmacyDB(self):
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		periods = db.garde_period.find({}).sort("_id",-1)
 
 		db.garde_pharmacy.delete_many({})
@@ -127,8 +129,6 @@ class OfficineUpdater(EventDispatcher):
 		"""
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		date = datetime.date.today()
 
 		current_date = datetime.datetime(date.year,date.month,date.day)
@@ -146,8 +146,6 @@ class OfficineUpdater(EventDispatcher):
 		"""
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		date = datetime.date.today()
 
 		current_date = datetime.datetime(date.year,date.month,date.day)
@@ -194,8 +192,6 @@ class OfficineUpdater(EventDispatcher):
 		"""
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		date = datetime.date.today()
 
 		current_date = datetime.datetime(date.year,date.month,date.day)
@@ -364,8 +360,6 @@ class OfficineUpdater(EventDispatcher):
 		parser.add_argument('--save', action="store_true", help='enregistre le tout en base de données')
 		args = parser.parse_args()
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		period_title:str = None
 
 		with open(args.file,encoding="utf8") as f:
@@ -525,8 +519,6 @@ class OfficineUpdater(EventDispatcher):
 	def saveGardeList(self):
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 
 		# active_period = db.garde_period.find_one({
@@ -778,8 +770,6 @@ class OfficineUpdater(EventDispatcher):
 		"""
 
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		date = datetime.date.today()
 		csv_filename:str = "gardedocs/{}{}{}.csv".format(date.day,date.month,date.year)

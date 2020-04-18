@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    JamiiBot &mdash; Gestion des utilisateurs
+{% endblock %}
+
+
+{% block body %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>
+                    Utilisateurs
+                    <div class="page-title-subheading">
+                    	les utilisateur messenger de facebook
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <h5 class="card-title">Tout les utilisateurs</h5>
+            <table class="mb-0 table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th class="text-center">Denonciations</th>
+                        <th class="text-center">Tickets</th>
+                        <th>Ajouté le...</th>
+                        <th>Heure</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for el in data %}
+                        <tr>
+                            <th scope="row">
+                                <a href="">
+                                    <i class="metismenu-icon pe-7s-look"></i>
+                                </a>
+                            </th>
+                            <td>
+                                <a href="">
+                                    {{ el.last_name }} {{ el.first_name }}
+                                </a>  
+                            </td>
+
+                            <td class="text-center">
+                                <a href=""><span class="badge badge-primary">0</span></a>
+                            </td>
+
+                            <td class="text-center">
+                                {% for s in el.tickets %}
+                                    <button class="mb-2 mr-3 btn btn-sm btn-dark">
+                                        
+                                        {% if s.state == 1 %}
+                                            Accepté
+                                        {% elif s.state == 2 %}
+                                            Refusé                                        
+                                        {% elif s.state in [0,4,3] %}
+                                            En attente
+                                        {% elif s.state in [5,6] %}
+                                            Clos
+                                        {% endif %}
+
+                                        <span class="badge badge-pill badge-primary" style="top:-10px">
+                                            {{ s.total}}
+                                        </span>
+                                    </button>
+                                {% else %}
+                                    -
+                                {% endfor %}
+                            </td>
+
+                            <td>
+                                {{ el.create_at.strftime("%d %b %Y")}}
+                            </td>
+
+                            <td>
+                                {{ el.create_at.strftime("%H:%M")}}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+</div>
+{% endblock %}

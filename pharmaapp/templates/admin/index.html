@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    JamiiBot Dashboard
+{% endblock %}
+
+
+{% block body %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>Tableau de bord
+                    <div class="page-title-subheading">
+                    	ce espace montre les statistiques de la plateforme
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-6 col-xl-4">
+            <div class="card mb-3 widget-content">
+                <div class="widget-content-outer">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Denonciations</div>
+                            <div class="widget-subheading">Depuis le debut</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-muted">
+                                {{ stats_denunc }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card mb-3 widget-content">
+                <div class="widget-content-outer">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Utilisateurs</div>
+                            <div class="widget-subheading">Depuis le debut</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-muted">
+                                {{ stats_user }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card mb-3 widget-content">
+                <div class="widget-content-outer">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Tickets</div>
+                            <div class="widget-subheading">Depuis le debut</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-muted">
+                                {{ stats_ticket }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-xl-4">
+
+            <div class="card mb-3 widget-content">
+                <div class="widget-content-outer">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Opérateurs</div>
+                            <div class="widget-subheading">Depuis le debut</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-muted">
+                                {{ stats_op }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="main-card mb-3 card">
+                <div class="card-header">
+                    Utilisateurs actifs
+                    {#<div class="btn-actions-pane-right">
+                        <div role="group" class="btn-group-sm btn-group">
+                            <button class="active btn btn-focus">Last Week</button>
+                            <button class="btn btn-focus">All Month</button>
+                        </div>
+                    </div>#}
+                </div>
+
+                <div class="table-responsive">
+                    <table class="align-middle mb-0 table table-borderless table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Nom</th>
+                                <th class="text-center">Tickets</th>
+                                <th class="text-center">Denonciations</th>
+                                <th class="text-center">
+                                    Dernière presence
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for el in data_users %}
+                            <tr>
+                                <td class="text-center text-muted">#{{loop.index}}</td>
+                                <td>
+                                    <div class="widget-content p-0">
+                                        <div class="widget-content-wrapper">
+                                            <div class="widget-content-left mr-3">
+                                                <div class="widget-content-left">
+                                                    <img width="40" class="rounded-circle" src="{{ el.profile_pic }}" alt="">
+                                                </div>
+                                            </div>
+                                            <div class="widget-content-left flex2">
+                                                <div class="widget-heading">
+                                                    {{ el.first_name }} {{ el.last_name }}
+                                                </div>
+                                                <div class="widget-subheading opacity-7">
+                                                    Utilisateur
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary" >
+                                        {{ el.tickets if el.tickets else 0 }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary" >
+                                        {{ el.denunciations if el.denunciations else 0 }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                     {{ el.last_presence.strftime("%d %b %Y à %H:%M")}}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+{% endblock %}

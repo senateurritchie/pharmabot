@@ -117,17 +117,14 @@ def register():
 
 		flash(error)
 
-	return render('security/register.html')
+	return render('security/register.html.jinja2')
 
 
 @bp.route("/login", methods=('GET','POST'))
 def login():
 
-
-
 	if g.user is not None:
 		return redirect(url_for("admin.index"))
-
 
 	if request.method == 'POST':
 		username = request.form['username']
@@ -149,7 +146,7 @@ def login():
 
 		flash(error)
 
-	return render('security/login.html')
+	return render('security/login.html.jinja2')
 
 @bp.route('/logout')
 @login_guard

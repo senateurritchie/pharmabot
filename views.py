@@ -2,6 +2,9 @@
 # -*-coding:utf-8 -*-
 import os 
 from pharmaapp.PharmaBot import PharmaBot,app
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 def create_app():
 	webhook:PharmaBot = PharmaBot(witAccessToken=os.environ["FB_WIT_AUTHORIZATION"])

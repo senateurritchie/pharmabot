@@ -2,12 +2,14 @@
 # -*-coding:utf-8 -*-
 
 import pymongo
-import datetime
+import datetime,os
 from .Consultation import Consultation
 
 
-client = pymongo.MongoClient()
+DATABASE_URL = os.environ["DATABASE_URL"]
+client = pymongo.MongoClient(DATABASE_URL)
 db = client.pharma_garde
+
 limit = 20
 consultations = db.consultation.find({
 	"state":{"$in":[1,4]}

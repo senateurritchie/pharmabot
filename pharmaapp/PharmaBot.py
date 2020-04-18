@@ -12,6 +12,9 @@ import  subprocess
 import  re
 import time
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from .AbstractBot import AbstractBot
 
 from .AnswerProcessing import AnswerProcessing
@@ -31,13 +34,18 @@ from .NewSearchAnswer import NewSearchAnswer
 from .HaveConsultationAnswer import HaveConsultationAnswer
 from .IsTestAnswer import IsTestAnswer
 
-
-
 from .ContextMessageManager import ContextMessage,ContextMessageManager,ContextCode,ContextMessageAuthor
-
 from .EventDispatcher import EventDispatcher,Event
 
+from .modules.security import bp as securBP
+from .modules.admin import bp as adminBP
+
+
+
 app = Flask(__name__)
+
+app.register_blueprint(securBP)
+app.register_blueprint(adminBP)
 
 class PharmaBot(AbstractBot):
 	"""
@@ -144,7 +152,7 @@ class PharmaBot(AbstractBot):
 
 	@app.errorhandler(404)
 	def view404(error):
-		return "ma jolie page 404", 404
+		return render("404.html.jinja2"),200
 
 	@app.errorhandler(500)
 	def view500(error):

@@ -1,0 +1,129 @@
+{% for el in data.messages %}
+
+    {% if el.sender_id == data.user_id %}
+        <div class="chat-box-wrapper">
+            <div>
+                <div class="avatar-icon-wrapper mr-1">
+                    <div class="avatar-icon avatar-icon-lg rounded">
+                        <img src="{{ data.user.profile_pic }}" alt="">
+                    </div>
+                </div>
+            </div>
+            <div>
+               
+                <div class="chat-box flex-column">
+                    <h6>
+                        {{ data.user.first_name }} {{ data.user.last_name }}
+                    </h6>
+
+                    {{ el.text }}
+
+                    {% if el.attachments %}
+                        <ul class="nav flex-column">
+                            <li class="nav-item-divider nav-item"></li>
+                            <li class="nav-item-header nav-item">
+                                Pièces jointes
+                            </li>
+                            <li class="text-center p-2 nav-item">
+                                <div class="avatar-wrapper avatar-wrapper-overlap">
+
+                                    {% for pj in el.attachments %}
+                                    <div class="avatar-icon-wrapper">
+                                        <div class="avatar-icon rounded">
+                                            {% if pj.type == 'image' %}
+                                                <a data-share="['download','facebook']" data-gall="myGallerym_{{ data._id }}" class="venobox" href="{{ pj.payload.url }}"><img src="{{ pj.payload.url }}" alt=""></a>
+                                            {% elif pj.type == 'video' %}
+                                                <a data-gall="myGallerym_{{ data._id }}" data-share="['download','facebook']" class="venobox" data-vbtype="iframe" data-autoplay="true" href="{{ pj.payload.url }}">
+                                                    <i class="metismenu-icon pe-7s-film"></i>
+                                                </a>
+                                            {% elif pj.type  == 'audio' %}
+                                                <a data-gall="myGallerym_{{ data._id }}" data-share="['download','facebook']" class="venobox" data-vbtype="iframe" data-autoplay="true" href="{{ pj.payload.url }}">
+                                                    <i class="metismenu-icon pe-7s-paperclip"></i>
+                                                </a>
+                                            {% else %}
+                                                <a class="venobox" data-share="['download','facebook']" href="{{ pj.payload.url }}">
+                                                    <i class="metismenu-icon pe-7s-play"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    
+                                </div>
+                            </li>
+                        </ul>
+                       
+                    {% endif %}
+                </div>
+                <small class="opacity-6">
+                    <i class="fa fa-calendar-alt mr-1"></i>
+                    {{ el.create_at.strftime("%H:%M | %d %b %Y") }}
+                </small>
+            </div>
+        </div>
+    {% else %}
+        <div class="">
+            <div class="chat-box-wrapper chat-box-wrapper-right float-right">
+                <div>
+                    <div class="chat-box flex-column">
+                        <h6>
+                            {{ data.user_operator.first_name }} {{ data.user_operator.last_name }}
+                        </h6>
+
+                        {{ el.text }}
+
+                        {% if el.attachments and el.attachments|length %}
+                            <ul class="nav flex-column">
+                                <li class="nav-item-divider nav-item"></li>
+                                <li class="nav-item-header nav-item">
+                                    Pièces jointes
+                                </li>
+                                <li class="text-center p-2 nav-item">
+                                    <div class="avatar-wrapper avatar-wrapper-overlap">
+
+                                        {% for pj in el.attachments %}
+                                        <div class="avatar-icon-wrapper">
+                                            <div class="avatar-icon rounded">
+                                                {% if pj.type == 'image' %}
+                                                    <a data-share="['download','facebook']" data-gall="myGallery" class="venobox" href="{{ pj.payload.url }}"><img src="{{ pj.payload.url }}" alt=""></a>
+                                                {% elif pj.type == 'video' %}
+                                                    <a data-gall="myGallery" data-share="['download','facebook']" class="venobox" data-vbtype="iframe" data-autoplay="true" href="{{ pj.payload.url }}">
+                                                        <i class="metismenu-icon pe-7s-film"></i>
+                                                    </a>
+                                                {% elif pj.type  == 'audio' %}
+                                                    <a data-gall="myGallery" data-share="['download','facebook']" class="venobox" data-vbtype="iframe" data-autoplay="true" href="{{ pj.payload.url }}">
+                                                        <i class="metismenu-icon pe-7s-paperclip"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <a class="venobox" data-share="['download','facebook']" href="{{ pj.payload.url }}">
+                                                        <i class="metismenu-icon pe-7s-play"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        
+                                        
+                                    </div>
+                                </li>
+                            </ul>
+                           
+                        {% endif %}
+                    </div>
+                    <small class="opacity-6">
+                        <i class="fa fa-calendar-alt mr-1"></i>
+                        {{ el.create_at.strftime("%H:%M | %d %b %Y") }}
+                    </small>
+                </div>
+                <div>
+                    <div class="avatar-icon-wrapper ml-1">
+                        <div class="avatar-icon avatar-icon-lg rounded">
+                            <img src="{{ data.user_operator.profile_pic }}" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}

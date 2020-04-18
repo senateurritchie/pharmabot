@@ -1,0 +1,114 @@
+<div class="app-sidebar sidebar-shadow">
+    <div class="app-header__logo">
+        <div class="logo-src"></div>
+        <div class="header__pane ml-auto">
+            <div>
+                <button type="button" class="hamburger close-sidebar-btn hamburger--elastic" data-class="closed-sidebar">
+                    <span class="hamburger-box">
+                        <span class="hamburger-inner"></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-header__mobile-menu">
+        <div>
+            <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                <span class="hamburger-box">
+                    <span class="hamburger-inner"></span>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <div class="app-header__menu">
+        <span>
+            <button type="button" class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                <span class="btn-icon-wrapper">
+                    <i class="fa fa-ellipsis-v fa-w-6"></i>
+                </span>
+            </button>
+        </span>
+    </div>
+
+    <div class="scrollbar-sidebar">
+        <div class="app-sidebar__inner">
+            <ul class="vertical-nav-menu">
+                <li class="app-sidebar__heading">
+                    Tableau de bord
+                </li>
+
+                <li>
+
+                    <a href="{{ url_for('admin.index') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.index' else '' }}">
+                        <i class="metismenu-icon pe-7s-graph2"></i>
+                        Vue globale
+                    </a>
+
+                </li>
+
+                <li class="app-sidebar__heading">Gestion des utilisateurs</li>
+
+                <li>
+
+                    <a href="{{ url_for('admin.users') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.users' else '' }}">
+                        <i class="metismenu-icon pe-7s-users"></i>
+                        Utilisateurs
+                    </a>
+                </li>
+
+                <li class="app-sidebar__heading">Gestion des sondages</li>
+
+                <li>
+
+                    <a href="{{ url_for('admin.surveys') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.surveys' else '' }}">
+                        <i class="metismenu-icon pe-7s-graph3"></i>
+                        Sondages
+                    </a>
+                </li>
+
+                
+
+                <li class="app-sidebar__heading">Gestion de crises</li>
+
+                <li>
+
+                    <a href="{{ url_for('admin.crisis') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis' else '' }}">
+                        <i class="metismenu-icon pe-7s-server"></i>
+                        Crises
+                    </a>
+
+                    <a href="{{ url_for('admin.crisis_operators') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis_operators' else '' }}">
+                        <i class="metismenu-icon pe-7s-headphones"></i>
+                        Opérateurs
+                    </a>
+
+                    <a href="{{ url_for('admin.crisis_tickets') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.crisis_tickets' else '' }}">
+                        <i class="metismenu-icon pe-7s-ticket"></i>
+                        Tickets
+                    </a>
+
+                   
+                </li>
+                
+                <li class="app-sidebar__heading">Denonciations</li>
+
+                <li>
+                    <a href="{{ url_for('admin.denunciations') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.denunciations' else '' }}">
+                        <i class="metismenu-icon pe-7s-server"></i>
+                        Données
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('admin.denunciation_tags') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.denunciation_tags' else '' }}">
+                        <i class="metismenu-icon pe-7s-ribbon"></i>
+                        Etiquêtes
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>

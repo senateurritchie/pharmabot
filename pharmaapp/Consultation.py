@@ -5,9 +5,14 @@ from enum import Enum
 import datetime
 import logging
 import random
-import pymongo
+import pymongo,os
 
 from .FBSend import FBSend
+
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+client = pymongo.MongoClient(DATABASE_URL)
+db = client.pharma_garde
 
 class ConsultationStatus(Enum):
 	
@@ -61,8 +66,6 @@ class Consultation:
 		"""
 		charge les info du patient depuis la base de données
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		d = db.user.find_one({
 			"_id":self.user_id
@@ -73,8 +76,6 @@ class Consultation:
 		"""
 		charge les infos du medecin depuis la base de données
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		d = db.medecin.aggregate([
 			{
@@ -106,9 +107,6 @@ class Consultation:
 		"""
 		selectionne un medecin disponible pour une consultation
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
-
 		medecins = db.medecin.aggregate([
 
 			
@@ -154,9 +152,6 @@ class Consultation:
 		enregistre les données de l'objet consultation dans la base de données
 		"""
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
-
 		inspect = dir(self)
 		data = {}
 		for i in inspect:
@@ -195,8 +190,6 @@ class Consultation:
 			si un medecin est disponible on lui envoi
 			une invitation à rejoindre cette demande
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		
 		fbsend:FBSend = FBSend()
 		user = self.retrieve_patient()
@@ -322,8 +315,6 @@ class Consultation:
 		"""
 		action pour accepter une demande de consultation
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		fbsend:FBSend = FBSend()
 
 		if self.state != ConsultationStatus.PENDING:
@@ -366,8 +357,6 @@ class Consultation:
 		pour cette consultation
 		"""
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 		fbsend:FBSend = FBSend()
 
 		if self.state != ConsultationStatus.PENDING:
@@ -404,8 +393,6 @@ class Consultation:
 
 		fbsend:FBSend = FBSend()
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		if self.state != ConsultationStatus.ACCEPTED:
 			return
@@ -449,8 +436,6 @@ class Consultation:
 		action automatique du CRON pour fermer
 		les consultation de plus de 5 miniutes d'inactivité
 		"""
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		fbsend:FBSend = FBSend()
 
@@ -520,8 +505,6 @@ class Consultation:
 		"""
 		fbsend:FBSend = FBSend()
 
-		client = pymongo.MongoClient()
-		db = client.pharma_garde
 
 		message["create_at"] = datetime.datetime.utcnow()
 

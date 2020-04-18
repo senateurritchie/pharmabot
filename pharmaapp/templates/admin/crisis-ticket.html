@@ -1,0 +1,216 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    JamiiBot &mdash; Gestion de crise
+{% endblock %}
+
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/venobox/1.8.6/venobox.min.css" integrity="sha256-bM8BrA55gwp08P/y/prufMxRmr59ygZlXj/k3qDD6/o=" crossorigin="anonymous" />
+
+    <style>
+        .vbox-overlay{
+            z-index: 2000 !important;
+        }
+    </style>
+{% endblock %}
+
+
+
+{% block modals %}
+    <!-- Modal message -->
+    <div class="modal fade" id="modal-message" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block body %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>
+                    Tickets
+                    <div class="page-title-subheading">
+                    	toutes les conversations de gestion de crise se retouvent dans cette espace
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <h5 class="card-title">Tout les tickets</h5>
+            <table class="mb-0 table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>#</th>
+                        <th>Demandeur</th>
+                        <th>Opérateur</th>
+                        <th>Sujet</th>
+                        <th>Date</th>
+                        <th>Accepté le...</th>
+                        <th>Refusé le...</th>
+                        <th>Cloturé le...</th>
+                        <th>Etat</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for el in data %}
+                        <tr class="data-item" data-ref="{{ el._id }}">
+                            <th scope="row">
+                                #{{ loop.index }}
+                            </th>
+
+                            <td >
+                                {% if el.messages|length %}
+                                    <a class="tool-show-msg" href="" data-toggle="modal" data-target="#modal-message">
+                                        <i class="metismenu-icon pe-7s-look"></i>
+                                    </a>
+                                {% else %}
+                                    <a class="tool-shuffle" href="" data-toggle="tooltip" data-placement="left" title="" data-original-title="réattribuer à un autre operateur">
+                                        <i class="metismenu-icon pe-7s-shuffle"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                <a href="">
+                                    {{ el.user.first_name }} {{ el.user.last_name }}
+                                </a>  
+                            </td>
+
+                            <td>
+                                <a href="">
+                                    {{ el.user_operator.first_name }} {{ el.user_operator.last_name }}
+                                </a>  
+                            </td>
+
+                            <td>
+                                {{ el.crisis.name }}
+                            </td>
+
+                            <td>
+                                <small>{{ el.create_at.strftime("%d %b %Y à %H:%M")}}</small>
+                            </td>
+
+                          
+                            <td>
+                                <small>
+                                    {{ el.accepted_at.strftime("%d %b %Y à %H:%M") if el.accepted_at else '-' }}
+                                </small>
+                            </td>
+
+                            <td>
+                                <small>
+                                    {{ el.refused_at.strftime("%d %b %Y à %H:%M") if el.refused_at else '-' }}
+                                </small>
+                            </td>
+
+                             <td>
+                                <small>
+                                    {{ el.closed_at.strftime("%d %b %Y à %H:%M") if el.closed_at else '-' }}
+                                </small>
+                            </td>
+
+                            <td>
+                                <span class="badge badge-primary">
+
+                                    {% if el.state == 1 %}
+                                        Accepté
+                                    {% elif el.state == 2 %}
+                                        Refusé                                        
+                                    {% elif el.state in [0,4,3] %}
+                                        En attente
+                                    {% elif el.state in [5,6] %}
+                                        Clos
+
+
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+</div>
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ super() }}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/venobox/1.8.6/venobox.min.js" integrity="sha256-vRcA6HQ42C3q7wQlOYINRAMuAPpjAmdORTQ1wv/jwtk=" crossorigin="anonymous"></script>
+
+    <script src="{{ url_for('static', filename='JamiiBot.js') }}"></script>
+
+    <script>
+
+        jQuery(document).ready(function($){
+
+            var modal = $('#modal-message');
+            
+            $("body").on("click",".tool-show-msg",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+                modal.find(".modal-title").html("Ticket "+tr.find('th:first').html());
+
+                $.ajax({
+                    url:"tickets/"+tr.data('ref')+"/messages",
+                    dataType:"text",
+                    method:"GET",
+                    success:function(data){
+                        var item = $(data);
+                        item.find('.venobox').venobox({
+                            share: [ 'download' ]
+                        });
+
+                        modal.find(".modal-body").html(item);
+
+                    },
+                    error:function(a,b,c){
+                        
+                    },
+                    complete:function(){
+                        
+                    }
+                })
+                modal.modal('show');
+            })
+            
+
+        });
+    </script>
+{% endblock %}

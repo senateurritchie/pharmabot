@@ -1,0 +1,317 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    JamiiBot &mdash; Gestion de crise
+{% endblock %}
+
+
+
+{% block modals %}
+    <!-- Modal insertion -->
+    <form action="{{ url_for('admin.crisis_save') }}" method="POST" class="modal fade" id="modal-insert" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ajouter un sujet</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group" style="position:relative">
+                        <label for="searchBox">Nom:</label>
+                        <input required="" name="name" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le nom du sujet...">
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_active" checked="" type="checkbox" id="exampleCustomCheckbox" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox">
+                                Publier le sujet
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_stick" type="checkbox" id="exampleCustomCheckbox2" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox2">
+                                Sujet de crise à l'affiche
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal suppression -->
+    <form action="{{ url_for('admin.crisis_delete') }}" method="POST" class="modal fade" id="modal-remove" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">confirmation...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                   <h6>Voulez-vous vraiment supprimer le sujet: « <span class="crisis-name"></span> » ?</h6>
+                   <input type="hidden" name="crisis_id">
+                </div>
+
+                <div class="modal-footer">
+                    <button data-dismiss="modal" type="submit" class="btn btn-dark">Non</button>
+                    <button type="submit" class="btn btn-dark">Oui</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal update -->
+    <form action="{{ url_for('admin.crisis_save') }}" method="POST" class="modal fade" id="modal-update" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">modification...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group" style="position:relative">
+                        <label for="searchBox">Nom:</label>
+                        <input required="" name="name" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le nom du sujet...">
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_active" checked="" type="checkbox" id="exampleCustomCheckbox3" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox3">
+                                Publier le sujet
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position:relative">
+                        <div class="custom-checkbox custom-control">
+                            <input name="is_stick" type="checkbox" id="exampleCustomCheckbox4" class="custom-control-input">
+                            <label class="custom-control-label" for="exampleCustomCheckbox4">
+                                Sujet de crise à l'affiche
+                            </label>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="crisis_id">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
+
+
+
+
+{% block body %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>
+                    Gestion de crises
+                    <div class="page-title-subheading">
+                    	ce espace permet de voir et manipuler les données de crises
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-title-actions">
+
+                <button type="button" class="btn-shadow mr-3 btn btn-dark" data-toggle="modal" data-target="#modal-insert">
+                    <i class="fa fa-plus"></i> nouveau sujet
+                </button>
+
+                
+            </div>
+        </div>
+    </div>
+
+    {% for category,message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{category}}">
+            <i class="fa fa-{{ 'info-circle' if category == 'info' else 'exclamation-triangle' }}"></i>
+            {{ message }}
+            
+        </div>
+    {% endfor %}
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <h5 class="card-title">Toutes les crises</h5>
+            <table class="mb-0 table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>#</th>
+                        <th>Nom</th>
+                        <th class="text-center">Tickets</th>
+                        <th class="text-center">Etat</th>
+                        <th class="text-center">A l'affiche</th>
+                        <th class="text-center">Ajouté le...</th>
+                        <th class="text-center">Heure</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for el in data %}
+                    <tr data-ref="{{ el._id }}" data-active="{{ 1 if el.is_active else 0 }}" data-stick="{{ 1 if el.is_stick else 0 }}">
+                        <th scope="row">
+                           {{ loop.index }}
+                        </th>
+
+                        <td class="tool-delete">
+                            <a href="">
+                                <i class="metismenu-icon pe-7s-trash"></i>
+                            </a>
+                        </td>
+                        <td class="crisis-name"><a href="">{{ el.name|title}}</a></td>
+                        <td class="text-center">
+                            {% for s in el.tickets %}
+                                <button class="mb-2 mr-3 btn btn-sm btn-dark">
+                                    
+                                    {% if s.state == 1 %}
+                                        Accepté
+                                    {% elif s.state == 2 %}
+                                        Refusé                                        
+                                    {% elif s.state in [0,4,3] %}
+                                        En attente
+                                    {% elif s.state in [5,6] %}
+                                        Clos
+                                    {% endif %}
+
+                                    <span class="badge badge-pill badge-primary" style="top:-10px">
+                                        {{ s.total}}
+                                    </span>
+                                </button>
+                            {% else %}
+                                -
+                            {% endfor %}
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge badge-primary">
+
+                                {% if el.is_active %}
+                                    Activé
+                                {% else %}
+                                    Désactivé
+                                {% endif %}
+                            </span>
+                        </td>
+
+                         <td class="text-center">
+                            <span class="badge badge-primary">
+
+                                {% if el.is_stick %}
+                                    Oui
+                                {% else %}
+                                    Non
+                                {% endif %}
+                            </span>
+                        </td>
+
+
+                        <td class="text-center">
+                            {{ el.create_at.strftime("%d %b %Y")}}
+                        </td>
+
+                        <td class="text-center">
+                            {{ el.create_at.strftime("%H:%M") if el.create_at else '-' }}
+                        </td>
+
+
+                    </tr>
+                    {% endfor %}
+                
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ super() }}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <script>
+
+        jQuery(document).ready(function($){
+
+            // gestion des suppression d'operateurs
+            // on fait une delegation d'evenement pour tout
+            // les bouton qui ont une classe = data-item
+            // 
+            var modalInsert = $('#modal-insert');
+            var modalRemove = $('#modal-remove');
+            var modalUpdate = $('#modal-update');
+            
+            modalInsert.on('show.bs.modal', function () {
+                setTimeout(function(){
+                    modalInsert.find('input[type=text]').trigger("focus")
+
+                },500);
+            })
+
+
+            $("body").on("click",".tool-delete",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+
+                modalRemove.find("input[type=hidden]").val(tr.data('ref'))
+                modalRemove.find("span.crisis-name").html(tr.find("td.crisis-name").text())
+                modalRemove.modal('show');
+            })
+
+            $("body").on("click",".crisis-name",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+
+                setTimeout(function(){
+                    modalUpdate.find('input[type=text]').val(tr.find("td.crisis-name").text())
+                    modalUpdate.find('input[name=is_active]').prop({"checked":tr.data('active') == 1 ? true : false})
+                    modalUpdate.find('input[name=is_stick]').prop({"checked":tr.data('stick') == 1 ? true : false})
+                    modalUpdate.find("input[type=hidden]").val(tr.data('ref'))
+
+                },500);
+                modalUpdate.modal('show');
+            })
+            
+
+        });
+    </script>
+{% endblock %}

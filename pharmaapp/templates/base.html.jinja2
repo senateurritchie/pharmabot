@@ -19,7 +19,7 @@
 
 		{% block stylesheets %}
 			<!-- favicon-->
-			<link rel="shortcut icon" href="{{ url_for('static', filename='site/assets/images/favicon.png') }}">
+			<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
 			<!-- Font Family-->
 			<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900" rel="stylesheet">
 			<!-- Bootstrap CSS-->
@@ -51,7 +51,10 @@
 	    </div>
 	    <!-- loader end-->
 
-	    {% include 'header.html.jinja2' %}
+	    {% block header %}   
+	    	{% include 'header.html.jinja2' %}
+		{% endblock %}
+
 
 		{% block body %}   
 

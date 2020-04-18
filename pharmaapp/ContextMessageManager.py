@@ -19,10 +19,11 @@ from .FBSend import FBSend
 from .ContextUserManager import ContextUser
 from .Consultation import Consultation
 
-
-
-client = pymongo.MongoClient()
+DATABASE_URL = os.environ["DATABASE_URL"]
+client = pymongo.MongoClient(DATABASE_URL)
 db = client.pharma_garde
+
+
 		
 class GIPHY:
 	DEMO=["231306008034659"]
