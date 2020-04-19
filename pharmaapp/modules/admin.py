@@ -8,6 +8,9 @@ from bson.objectid import ObjectId
 import functools
 
 from ..modules.security import login_guard,is_granted
+from ..OfficineUpdater import OfficineUpdater
+
+
 import json
 import datetime
 from slugify import slugify
@@ -123,22 +126,178 @@ def users():
 
 	data = [i for i in data]
 
-
 	# for el in data:
 	# 	el["user"] = el["user"][0]
 
 	return render('admin/users-index.html', data=data)
 
+
+
+@bp.route("/garde-periods", methods=('GET',))
+@is_granted("role_pharmacy")
+@login_guard
+def garde_periods():
+	"""
+	tableau de bord des denonctions
+	"""
+	data = db.garde_period.aggregate([
+		
+		{"$sort":{"_id":-1}},
+		{"$limit":50},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"create_by",
+				"foreignField":"_id",
+				"as":"author"
+			}
+		},
+		{"$addFields":{"author":{"$arrayElemAt":["$author",0]}}},
+
+	])
+
+	data = [i for i in data]
+
+	return render('admin/garde-periods-index.html.jinja2', data=data)
+
+
+@bp.route("/garde-periods/upload", methods=('POST',))
+@is_granted("role_pharmacy")
+@login_guard
+def garde_periods_upload():
+	"""
+	pour charger une nouvelle periode de garde
+	avec un fichier .txt
+	"""
+	file = request.files["file"]
+	updater = OfficineUpdater()
+
+	try:
+		logs = updater.saveGardeList2(file.read().decode(), request.form.get("save") == "on")
+
+		for log in logs:
+			flash(log,'info')
+
+	except Exception as e:
+		flash(str(e),'danger')
+		
+
+	return redirect(url_for("admin.garde_periods"))
+
+
+
+@bp.route("/garde-periods/<garde_period_id>/pharmacies", methods=('GET',))
+@is_granted("role_pharmacy")
+@login_guard
+def get_pharmacies_garde_period(garde_period_id):
+	"""
+	tableau de bord des denonctions
+	"""
+
+	result = {"status":False}
+	garde_period = db.garde_period.find_one({"_id":ObjectId(garde_period_id)})
+
+	if not garde_period:
+		result["logs"] = "cette periode de garde n'existe pas"
+	else:
+		result["payload"] = {"period":garde_period}
+
+		stages = [
+			{"$match":{
+				"garde_period_id":garde_period["_id"]
+			}},
+			{"$lookup":{
+				"from":"locality",
+				"localField":"locality_slug",
+				"foreignField":"slug",
+				"as":"locality"
+			}},
+			{"$sort":{"zone":1,"locality_slug":1,}},
+			{"$addFields":{"locality":{"$arrayElemAt":["$locality",0]}}},
+
+		]
+
+		pharmacies = db.garde.aggregate(stages)
+		pharmacies = [i for i in pharmacies]
+		result["payload"]["html"] = render('admin/garde-period-pharmacies-tpl.html.jinja2', pharmacies=pharmacies,period=garde_period)
+
+	r = response(json.dumps(result, default=json_util.default))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+@bp.route("/garde-periods/<garde_period_id>/activation", methods=('POST',))
+@is_granted("role_pharmacy")
+@login_guard
+def activate_garde_period(garde_period_id):
+	"""
+	pour activer et desactiver une periode de garde
+	"""
+
+	result = {"status":False}
+	garde_period = db.garde_period.find_one({"_id":ObjectId(garde_period_id)})
+
+	if not garde_period:
+		result["logs"] = "cette periode de garde n'existe pas"
+	else:
+		result['status'] = True
+
+		if request.form.get("state") == True:
+			db.garde_period.update_many({
+				"is_active":True
+			},{
+				"$set":{
+					"is_active":False
+				}
+			})
+
+			db.garde_period.update_many({
+				"_id":garde_period["_id"]
+			},{
+				"$set":{
+					"is_active":True
+				}
+			})
+
+		elif request.form.get("state") == False:
+
+			db.garde_period.update_many({
+				"_id":garde_period["_id"]
+			},{
+				"$set":{
+					"is_active":False
+				}
+			})
+
+	r = response(json.dumps(result, default=json_util.default))
+	r.headers["content-type"] = "application/json"
+
+	return r,200
+
+
+
+
 @bp.route("/quizz", methods=('GET','POST'))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz():
 	"""
 	onglet de gestion des quizz 
 	"""
 	data = db.quizz.aggregate([
+
 		{"$sort":{"_id":-1}},
-		{"$limit":20}
+		{"$limit":20},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"create_by",
+				"foreignField":"_id",
+				"as":"author"
+			}
+		},
+		{"$addFields":{"author":{"$arrayElemAt":["$author",0]}}},
 	])
 
 	data = [i for i in data]
@@ -146,7 +305,7 @@ def quizz():
 	return render('admin/quizz-index.html.jinja2', data=data)
 
 @bp.route("/quizz/<quizz_id>", methods=('GET',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def get_quizz(quizz_id):
 	"""
@@ -167,13 +326,13 @@ def get_quizz(quizz_id):
 	return r,200
 
 @bp.route("/quizz/<quizz_id>/questions/<question_id>/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_question_save(quizz_id,question_id):
 	"""
 	on met a jour un question d'un quizz
 	"""
-	survey_id = ObjectId(quizz_id)
+	quizz_id = ObjectId(quizz_id)
 	question_id = ObjectId(question_id)
 	payload = request.form["payload"]
 	result = {"status":False}
@@ -207,7 +366,7 @@ def quizz_question_save(quizz_id,question_id):
 
 
 @bp.route("/quizz/<quizz_id>/questions/<question_id>/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_question_delete(quizz_id,question_id):
 	"""
@@ -250,7 +409,7 @@ def quizz_question_delete(quizz_id,question_id):
 
 
 @bp.route("/quizz/<quizz_id>/questions/add", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_question_add(quizz_id):
 	"""
@@ -267,17 +426,22 @@ def quizz_question_add(quizz_id):
 
 		questions = []
 		has_error = False
+
+
 		for i,v in enumerate(request.form.getlist('question')):
 			if not v.strip():
 				result["logs"] = "veuiller saisir la question svp"
 				has_error = True
 				continue
 
+
+			choices_is_true = request.form.getlist('response_check[{}][1]'.format(i+1))
+			autoresponders = request.form.getlist('autoresponder[{}]'.format(i+1))
+
 			question = {
 				"_id":ObjectId(),
 				"type":"text",
 				"payload":v,
-				"is_required":True,
 				"choices":[]
 			}
 
@@ -287,11 +451,17 @@ def quizz_question_add(quizz_id):
 				if not vv.strip():
 					result["logs"] = "veuiller saisir la reponse {} svp".format(ii+1)
 					has_error = True
-					break
+					break  
 
 				choice_id = ObjectId()
+
+				choice_is_true = choices_is_true[ii] == "on"
+				autoresponder = autoresponders[ii]
+
 				question["choices"].append({
 					"_id":choice_id,
+					"is_true":choice_is_true,
+					"autoresponder":autoresponder,
 					"type":"text",
 					"payload":vv,
 					"answers":0
@@ -319,7 +489,7 @@ def quizz_question_add(quizz_id):
 
 
 @bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/<response_id>/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_response_save(quizz_id,question_id,response_id):
 	"""
@@ -330,6 +500,8 @@ def quizz_response_save(quizz_id,question_id,response_id):
 	question_id = ObjectId(question_id)
 	response_id = ObjectId(response_id)
 	payload = request.form["payload"]
+	is_true = request.form["is_true"]
+	auto_responder = request.form["auto_responder"]
 	result = {"status":False}
 
 	if len(payload.strip()):
@@ -344,6 +516,8 @@ def quizz_response_save(quizz_id,question_id,response_id):
 				for choice in question["choices"]:
 					if choice["_id"] == response_id:
 						choice["payload"] = payload
+						choice["is_true"] = is_true == "on"
+						choice["autoresponder"] = auto_responder.strip()
 						isexists = True
 						result["_id"] = str(choice["_id"])
 						break
@@ -370,7 +544,7 @@ def quizz_response_save(quizz_id,question_id,response_id):
 
 
 @bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/<response_id>/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_response_delete(quizz_id,question_id,response_id):
 	"""
@@ -390,7 +564,7 @@ def quizz_response_delete(quizz_id,question_id,response_id):
 	isexists = False
 	for question in survey["questions"]:
 		if question["_id"] == question_id:
-			if len(question["choices"]):
+			if len(question["choices"]) == 2:
 				result["logs"] = "Une question doit avoir mininum 2 propositions de reponse"
 				break
 			for i,choice in enumerate(question["choices"]):
@@ -417,7 +591,7 @@ def quizz_response_delete(quizz_id,question_id,response_id):
 
 
 @bp.route("/quizz/<quizz_id>/questions/<question_id>/responses/add", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_response_add(quizz_id,question_id):
 	"""
@@ -426,6 +600,8 @@ def quizz_response_add(quizz_id,question_id):
 	quizz_id = ObjectId(quizz_id)
 	question_id = ObjectId(question_id)
 	payload = request.form["payload"]
+	auto_responder = request.form["auto_responder"]
+	is_true = request.form["is_true"]
 	result = {"status":False}
 
 	if len(payload.strip()):
@@ -442,6 +618,8 @@ def quizz_response_add(quizz_id,question_id):
 					"_id":_id,
 					"type":"text",
 					"payload":payload,
+					"is_true":is_true == "on",
+					"autoresponder":auto_responder,
 					"answers":0
 				})
 				result["_id"] = str(_id)
@@ -466,7 +644,7 @@ def quizz_response_add(quizz_id,question_id):
 
 @bp.route("/quizz/<quizz_id>/save", methods=('POST',))
 @bp.route("/quizz/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_quizz")
 @login_guard
 def quizz_save(quizz_id=None):
 	"""
@@ -475,14 +653,18 @@ def quizz_save(quizz_id=None):
 	
 	quizz_id = quizz_id if quizz_id is not None else request.form.get("quizz_id",None)
 	title = request.form.get("title","").strip()
+	good_resp_msg = request.form.get("good_resp_msg","").strip()
+	bad_resp_msg = request.form.get("bad_resp_msg","").strip()
 	is_active = request.form.get("is_active",False)
 	is_active = True if is_active == "on" else is_active
 	is_stick = request.form.get("is_stick",False)
 	is_stick = True if is_stick == "on" else is_stick
 	slug = slugify(title)
+	is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
 
 	if len(title) == 0:
-		if request.is_xhr:
+		if is_xhr:
 			return "",200
 
 		flash("attention, veuiller saisir le titre du sondage",'danger')
@@ -500,6 +682,8 @@ def quizz_save(quizz_id=None):
 			{
 				"$set":{
 					"title":title,
+					"good_resp_txt":good_resp_msg,
+					"bad_resp_txt":bad_resp_msg,
 					"slug":slug,
 					"is_active":is_active,
 					"is_stick":is_stick,
@@ -510,7 +694,7 @@ def quizz_save(quizz_id=None):
 		survey = db.quizz.find_one({"slug":slugify(title)})
 
 		if survey is not None:
-			if request.is_xhr:
+			if is_xhr:
 				return "",200
 
 			flash("attention, ce quizz existe déla",'danger')
@@ -525,13 +709,17 @@ def quizz_save(quizz_id=None):
 					"_id":ObjectId(),
 					"type":"text",
 					"payload":v,
-					"is_required":True,
 					"choices":[]
 				}
 
 				for ii,vv in enumerate(request.form.getlist('response[{}]'.format(i+1))):
+					choice_is_true = request.form.get('response_check[{}][{}]'.format(i+1,ii+1)) == "on"
+					autoresponder = request.form.get('autoresponder[{}]'.format(ii+1)).strip()
+
 					question["choices"].append({
 						"_id":ObjectId(),
+						"is_true":choice_is_true,
+						"autoresponder":autoresponder,
 						"type":"text",
 						"payload":vv,
 						"answers":0
@@ -542,6 +730,8 @@ def quizz_save(quizz_id=None):
 			_id = db.quizz.insert_one({
 				"create_by":g.user["_id"],
 				"title":title,
+				"good_resp_txt":good_resp_msg,
+				"bad_resp_txt":bad_resp_msg,
 				"slug":slug,
 				"welcome_text":None,
 				"end_text":None,
@@ -553,7 +743,7 @@ def quizz_save(quizz_id=None):
 				"questions":questions,
 			}).inserted_id
 
-	if request.is_xhr:
+	if is_xhr:
 		return "",200
 
 	flash("l'opération à bien été effectuée avec succes",'info')
@@ -562,7 +752,7 @@ def quizz_save(quizz_id=None):
 
 
 @bp.route("/quizz/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_admin")
 @login_guard
 def quizz_delete():
 	"""
@@ -588,7 +778,7 @@ def quizz_delete():
 #######################################################""
 
 @bp.route("/surveys", methods=('GET','POST'))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def surveys():
 	"""
@@ -597,7 +787,16 @@ def surveys():
 	
 	data = db.survey.aggregate([
 		{"$sort":{"_id":-1}},
-		{"$limit":20}
+		{"$limit":20},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"create_by",
+				"foreignField":"_id",
+				"as":"author"
+			}
+		},
+		{"$addFields":{"author":{"$arrayElemAt":["$author",0]}}},
 	])
 
 	data = [i for i in data]
@@ -606,7 +805,7 @@ def surveys():
 
 
 @bp.route("/surveys/<survey_id>", methods=('GET',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def get_survey(survey_id):
 	"""
@@ -628,7 +827,7 @@ def get_survey(survey_id):
 
 
 @bp.route("/surveys/<survey_id>/questions/<question_id>/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_question_save(survey_id,question_id):
 	"""
@@ -670,7 +869,7 @@ def survey_question_save(survey_id,question_id):
 	return r,200
 
 @bp.route("/surveys/<survey_id>/questions/<question_id>/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_question_delete(survey_id,question_id):
 	"""
@@ -714,7 +913,7 @@ def survey_question_delete(survey_id,question_id):
 
 
 @bp.route("/surveys/<survey_id>/questions/add", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_question_add(survey_id):
 	"""
@@ -784,7 +983,7 @@ def survey_question_add(survey_id):
 
 
 @bp.route("/surveys/<survey_id>/questions/<question_id>/responses/<response_id>/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_response_save(survey_id,question_id,response_id):
 	"""
@@ -837,7 +1036,7 @@ def survey_response_save(survey_id,question_id,response_id):
 
 
 @bp.route("/surveys/<survey_id>/questions/<question_id>/responses/<response_id>/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_response_delete(survey_id,question_id,response_id):
 	"""
@@ -886,7 +1085,7 @@ def survey_response_delete(survey_id,question_id,response_id):
 
 
 @bp.route("/surveys/<survey_id>/questions/<question_id>/responses/add", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_response_add(survey_id,question_id):
 	"""
@@ -941,7 +1140,7 @@ def survey_response_add(survey_id,question_id):
 
 @bp.route("/survey/<survey_id>/save", methods=('POST',))
 @bp.route("/survey/save", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_survey")
 @login_guard
 def survey_save(survey_id=None):
 	"""
@@ -955,9 +1154,11 @@ def survey_save(survey_id=None):
 	is_stick = request.form.get("is_stick",False)
 	is_stick = True if is_stick == "on" else is_stick
 	slug = slugify(title)
+	is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
 
 	if len(title) == 0:
-		if request.is_xhr:
+		if is_xhr:
 			return "",200
 
 		flash("attention, veuiller saisir le titre du sondage",'danger')
@@ -985,7 +1186,7 @@ def survey_save(survey_id=None):
 		survey = db.survey.find_one({"slug":slugify(title)})
 
 		if survey is not None:
-			if request.is_xhr:
+			if is_xhr:
 				return "",200
 
 			flash("attention, ce sondage existe déla",'danger')
@@ -1028,7 +1229,7 @@ def survey_save(survey_id=None):
 				"questions":questions,
 			}).inserted_id
 
-	if request.is_xhr:
+	if is_xhr:
 		return "",200
 
 	flash("l'opération à bien été effectuée avec succes",'info')
@@ -1037,7 +1238,7 @@ def survey_save(survey_id=None):
 
 
 @bp.route("/survey/delete", methods=('POST',))
-@is_granted("role_super_admin")
+@is_granted("role_admin")
 @login_guard
 def survey_delete():
 	"""
@@ -1481,14 +1682,7 @@ def crisis_tickets():
 				"as":"user"
 			}
 		},
-		{
-			"$lookup":{
-				"from":"crisis",
-				"foreignField":"_id",
-				"localField":"crisis_id",
-				"as":"crisis"
-			}
-		},
+		
 		{
 			"$lookup":{
 				"from":"crisis_operator",
@@ -1514,9 +1708,9 @@ def crisis_tickets():
 
 	for el in data:
 		el["user"] = el["user"][0]
-		el["crisis"] = el["crisis"][0]
-		el["operator"] = el["operator"][0]
-		el["user_operator"] = el["user_operator"][0]
+		if el["operator"]:
+			el["operator"] = el["operator"][0]
+			el["user_operator"] = el["user_operator"][0]
 
 
 	return render('admin/crisis-ticket.html',data=data)

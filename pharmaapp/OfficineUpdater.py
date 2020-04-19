@@ -350,146 +350,119 @@ class OfficineUpdater(EventDispatcher):
 		index = months.index(slugify(name)) + 1
 		return index
 
-	def saveGardeList2(self):
+	def saveGardeList2(self,content,save=False):
 
-		
+		# parser = argparse.ArgumentParser(description='Analyseur de fichier des tours de garde',usage="%(prog)s [options]")
 
-		parser = argparse.ArgumentParser(description='Analyseur de fichier des tours de garde',usage="%(prog)s [options]")
-
-		parser.add_argument('file',type=str, help='fichier source à analyser')
-		parser.add_argument('--save', action="store_true", help='enregistre le tout en base de données')
-		args = parser.parse_args()
-
+		# parser.add_argument('file',type=str, help='fichier source à analyser')
+		# parser.add_argument('--save', action="store_true", help='enregistre le tout en base de données')
+		# args = parser.parse_args()
+		result = {"logs":[],"status":False}
 		period_title:str = None
 
-		with open(args.file,encoding="utf8") as f:
-			lines = f.read().split("\n")
+		#with open(args.file,encoding="utf8") as file:
+		
+		lines = content.split("\n")
 
-			title_pattern = r"SEMAINE DU (?P<start_day_name>\w+) (?P<start_day_number>\d{1,2}) (?P<start_month_name>\w+) (?P<start_year>\d{4}) AU (?P<end_day_name>\w+) (?P<end_day_number>\d{1,2}) (?P<end_month_name>\w+) (?P<end_year>\d{4})"
-			
-			location_pattern = r"^\[(?P<location>.+?)\]"
+		title_pattern = r"SEMAINE DU (?P<start_day_name>\w+) (?P<start_day_number>\d{1,2}) (?P<start_month_name>\w+) (?P<start_year>\d{4}) AU (?P<end_day_name>\w+) (?P<end_day_number>\d{1,2}) (?P<end_month_name>\w+) (?P<end_year>\d{4})"
+		
+		location_pattern = r"^\[(?P<location>.+?)\]"
 
-			period_id = None
-			currentLocation = None
-			locations = []
+		period_id = None
+		currentLocation = None
+		locations = []
 
-			for i,line in enumerate(lines):
+		for i,line in enumerate(lines):
 
-				if len(line.strip()) == 0:
+			if len(line.strip()) == 0:
+				continue
+
+			if i == 0:
+				tt = re.search(title_pattern,line,re.I)
+				period_title = line
+
+				if tt:
+					start_day_name = tt.group("start_day_name")
+					start_day_number = tt.group("start_day_number")
+					start_month_name = tt.group("start_month_name")
+					start_year = tt.group("start_year")
+					end_day_name = tt.group("end_day_name")
+					end_day_number = tt.group("end_day_number")
+					end_month_name = tt.group("end_month_name")
+					end_year = tt.group("end_year")
+
+					# enregistrement de la periode
+					slug = slugify(line)
+
+					isExists = db.garde_period.find_one({
+						"slug":slug
+					})
+
+					if isExists is not None:
+						raise Exception('La periode "{}" existe deja'.format(line))
+
+					if save:
+
+						period_id = db.garde_period.insert_one({
+							"title":line,
+							"slug":slug,
+							"start":datetime.datetime(int(start_year),self.get_month_number(start_month_name),int(start_day_number)),
+							"end":datetime.datetime(int(end_year),self.get_month_number(end_month_name),int(end_day_number)),
+							"is_active":False,
+							"create_at":datetime.datetime.utcnow()
+						}).inserted_id
+
 					continue
+			else:
 
-				if i == 0:
-					tt = re.search(title_pattern,line,re.I)
-					period_title = line
+				if save:
+					if period_id is None:
+						raise Exception("La periode n'a pas été détectée")
 
-					if tt:
-						start_day_name = tt.group("start_day_name")
-						start_day_number = tt.group("start_day_number")
-						start_month_name = tt.group("start_month_name")
-						start_year = tt.group("start_year")
-						end_day_name = tt.group("end_day_name")
-						end_day_number = tt.group("end_day_number")
-						end_month_name = tt.group("end_month_name")
-						end_year = tt.group("end_year")
+				tt = re.search(location_pattern,line,re.I)
+				if tt:
+					currentLocation = tt.group("location")
+					if currentLocation.upper() in ["II PLATEAUX","II PLATEAU"]:
+						currentLocation = "2 PLATEAUX"
+					
+					currentLocation = currentLocation.lower().title()
 
-						# enregistrement de la periode
-						slug = slugify(line)
+					for loc in currentLocation.split("/"):
+						locations.append(loc.strip())
 
-						isExists = db.garde_period.find_one({
-							"slug":slug
-						})
-
-						if isExists is not None:
-							raise Exception('La periode "{}" existe deja'.format(line))
-
-
-						if args.save:
-
-							period_id = db.garde_period.insert_one({
-								"title":line,
-								"slug":slug,
-								"start":datetime.datetime(int(start_year),self.get_month_number(start_month_name),int(start_day_number)),
-								"end":datetime.datetime(int(end_year),self.get_month_number(end_month_name),int(end_day_number)),
-								"is_active":False,
-								"create_at":datetime.datetime.utcnow()
-							}).inserted_id
-
-						continue
+					continue
 				else:
+					items = line.split("/")
+					if len(items) != 4:
+						raise Exception('Le format "{}" n\'est pas correct. [LIGNE]: {}'.format(line,i+1))
 
-					if args.save:
-						if period_id is None:
-							raise Exception("La periode n'a pas été détectée")
+					if not save:
+						continue;
 
-					tt = re.search(location_pattern,line,re.I)
-					if tt:
-						currentLocation = tt.group("location")
-						if currentLocation.upper() in ["II PLATEAUX","II PLATEAU"]:
-							currentLocation = "2 PLATEAUX"
-						
-						currentLocation = currentLocation.lower().title()
+					name = items[0].strip().upper().replace("PHCIE","PHARMACIE")
+					owner = items[1].upper()
+					address = items[3].strip().lower()
+					contacts = []
 
-						for loc in currentLocation.split("/"):
-							locations.append(loc.strip())
+					for tel in items[2].split("-"):
+						contacts.append(tel.strip())
 
-						continue
-					else:
-						items = line.split("/")
-						if len(items) != 4:
-							raise Exception('Le format "{}" n\'est pas correct. [LIGNE]: {}'.format(line,i+1))
+					contacts = "-".join(contacts)
 
-						if not args.save:
-							continue;
+					cur_loc = currentLocation.replace('/', '-')
+					locality_ =  [ee.strip() for ee in cur_loc.split("-") if len(ee.strip())]
 
+					if len(locality_) > 1:
+						for ee in locality_:
+							# if ee not in localities:
+							ee = re.sub(r"([ ]+)",r" ",ee)
+							zone = self.get_zone(ee)
 
-
-						name = items[0].strip().upper().replace("PHCIE","PHARMACIE")
-						owner = items[1].upper()
-						address = items[3].strip().lower()
-						contacts = []
-
-						for tel in items[2].split("-"):
-							contacts.append(tel.strip())
-
-						contacts = "-".join(contacts)
-
-						cur_loc = currentLocation.replace('/', '-')
-						locality_ =  [ee.strip() for ee in cur_loc.split("-") if len(ee.strip())]
-
-						if len(locality_) > 1:
-							for ee in locality_:
-								# if ee not in localities:
-								ee = re.sub(r"([ ]+)",r" ",ee)
-								zone = self.get_zone(ee)
-
-								payload = {
-									"garde_period_id":period_id,
-									"zone":zone,
-									"locality":ee,
-									"locality_slug":slugify(ee),
-									"pharmacy":name,
-									"name":name,
-									"pharmacy_slug":slugify(name),
-									"slug":slugify(name),
-									"owner":owner,
-									"contacts":contacts.split('-'),
-									"address":address,
-									"create_at":datetime.datetime.utcnow()
-								}
-
-								print(payload,"\n")
-
-								db.garde.insert_one(payload)
-								self.addOfficialPharmacy(payload,db)
-						else:
-							# if cur_loc not in localities:
-							cur_loc = re.sub(r"([ ]+)",r" ",cur_loc)
-							zone = self.get_zone(cur_loc)
 							payload = {
 								"garde_period_id":period_id,
 								"zone":zone,
-								"locality":cur_loc,
-								"locality_slug":slugify(cur_loc),
+								"locality":ee,
+								"locality_slug":slugify(ee),
 								"pharmacy":name,
 								"name":name,
 								"pharmacy_slug":slugify(name),
@@ -499,27 +472,44 @@ class OfficineUpdater(EventDispatcher):
 								"address":address,
 								"create_at":datetime.datetime.utcnow()
 							}
-							print(payload,"\n")
 
 							db.garde.insert_one(payload)
 							self.addOfficialPharmacy(payload,db)
+					else:
+						# if cur_loc not in localities:
+						cur_loc = re.sub(r"([ ]+)",r" ",cur_loc)
+						zone = self.get_zone(cur_loc)
+						payload = {
+							"garde_period_id":period_id,
+							"zone":zone,
+							"locality":cur_loc,
+							"locality_slug":slugify(cur_loc),
+							"pharmacy":name,
+							"name":name,
+							"pharmacy_slug":slugify(name),
+							"slug":slugify(name),
+							"owner":owner,
+							"contacts":contacts.split('-'),
+							"address":address,
+							"create_at":datetime.datetime.utcnow()
+						}
+						db.garde.insert_one(payload)
+						self.addOfficialPharmacy(payload,db)
 							
 			
+		result["logs"].append("Félicitation le fichier est bien formatté")
 
-			print("[Parser]: Félicitation le fichier est bien formatté")
+		if  save:
+			result["logs"].append("Enregistré avec succes")
 
-			if  args.save:
-				print("Enregistré avec succes")
+		result["logs"].append(period_title)
+		result["logs"].append(", ".join(sorted(locations)))
 
-			print(period_title)
-			print(sorted(locations))
+		return result["logs"]
 
 		
 
 	def saveGardeList(self):
-
-
-
 
 		# active_period = db.garde_period.find_one({
 		# 	"is_active":True

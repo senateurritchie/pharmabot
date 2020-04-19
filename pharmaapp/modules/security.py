@@ -13,7 +13,14 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 bp = Blueprint('security', __name__, url_prefix='/security')
 
 role_hierachy = {
-	"role_admin":["role_user","role_operator_remove","role_operator_insert"],
+	"role_admin":[
+		"role_user",
+		"role_operator_remove",
+		"role_operator_insert",
+		"role_survey",
+		"role_quizz",
+		"role_pharmacy"
+	],
 	"role_super_admin":["role_admin"]
 }
 
@@ -21,36 +28,42 @@ client = pymongo.MongoClient(DATABASE_URL)
 db = client.pharma_garde
 
 
+def _is_granted(role):
+	if g.user is None:
+		return False
+
+	table = set()
+
+	def fill_role_hierachy(r):
+		if r in role_hierachy:
+			if type(role_hierachy[r]) == list:
+				for i in role_hierachy[r]:
+					table.add(fill_role_hierachy(i))
+		return r
+
+	for r in g.user['roles']:
+		table.add(fill_role_hierachy(r))
+
+
+	if type(role) == str:
+		if role.strip().lower() not in table:
+			return False
+
+	elif type(role) == list:
+		for el in role:
+			if el.strip().lower() not in table:
+				return False
+
+	return True
+
 
 def is_granted(role):
 	def wrapped(view):
 		@functools.wraps(view)
 		def wrapped_view(**kwargs):
 
-			if g.user is None:
+			if _is_granted(role) != True:
 				return abort(403)
-
-			table = set()
-
-			def fill_role_hierachy(r):
-				if r in role_hierachy:
-					if type(role_hierachy[r]) == list:
-						for i in role_hierachy[r]:
-							table.add(fill_role_hierachy(i))
-				return r
-
-			for r in g.user['roles']:
-				table.add(fill_role_hierachy(r))
-
-
-			if type(role) == str:
-				if role.strip().lower() not in table:
-					return abort(403)
-
-			elif type(role) == list:
-				for el in role:
-					if el.strip().lower() not in table:
-						return abort(403)
 
 			return view(**kwargs)
 
@@ -66,6 +79,7 @@ def login_guard(view):
 		return view(**kwargs)
 
 	return wrapped_view
+
 
 @bp.before_app_request
 def load_logged_in_user():

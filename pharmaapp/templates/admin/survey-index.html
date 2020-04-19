@@ -226,6 +226,7 @@
                         <th class="text-center">Etat</th>
                         <th class="text-center">Ajouté le...</th>
                         <th class="text-center">Heure</th>
+                        <th class="text-center">Auteur</th>
                     </tr>
                 </thead>
 
@@ -269,7 +270,22 @@
                             {{ el.create_at.strftime("%H:%M") if el.create_at else '-' }}
                         </td>
 
+                        <td>
+                            <a href="">
+                                {{ el.author.username|title}}
+                            </a>
+                        </td>
+
                     </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="alert alert-dark fade show">
+                                    Il n'y a aucun sondage enregistré pour le moment.
+                                </div>
+                            </td>
+                        </tr>
                     {% endfor %}
                 
                 </tbody>

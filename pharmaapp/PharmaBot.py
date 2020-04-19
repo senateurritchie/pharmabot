@@ -37,7 +37,7 @@ from .IsTestAnswer import IsTestAnswer
 from .ContextMessageManager import ContextMessage,ContextMessageManager,ContextCode,ContextMessageAuthor
 from .EventDispatcher import EventDispatcher,Event
 
-from .modules.security import bp as securBP
+from .modules.security import bp as securBP,_is_granted
 from .modules.admin import bp as adminBP
 
 
@@ -48,6 +48,11 @@ app.secret_key = b"v\xa1\x16\xfd\xcb\xa4\x97'\x94\xb7\x04\xa5\xb4H\xcc\x16m\xc6\
 app.config['MAX_CONTENT_LENGTH'] = 700 * 1024 * 1024
 app.register_blueprint(securBP)
 app.register_blueprint(adminBP)
+
+
+@app.context_processor
+def passer_aux_templates_jinja2():
+    return dict(is_granted=_is_granted)
 
 class PharmaBot(AbstractBot):
 	"""

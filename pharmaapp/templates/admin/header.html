@@ -1,4 +1,4 @@
-<div class="app-header header-shadow">
+<div class="app-header header-shadow bg-night-sky header-text-light">
     <div class="app-header__logo">
         <div class="logo-src"></div>
         <div class="header__pane ml-auto">
@@ -98,7 +98,15 @@
                                 {{ g.user.username }}
                             </div>
                             <div class="widget-subheading">
-                                Jamii Manager
+                                {% if is_granted("role_super_admin") %}
+                                    Super Manager
+                                {% elif is_granted("role_admin") %}
+                                    Manager
+                                {% elif is_granted("role_survey") %}
+                                    Survey Manager
+                                {% elif is_granted("role_quizz") %}
+                                    Quizz Manager
+                                {% endif %}
                             </div>
                         </div>
                         

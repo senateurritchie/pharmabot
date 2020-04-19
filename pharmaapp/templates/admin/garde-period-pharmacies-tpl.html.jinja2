@@ -1,0 +1,67 @@
+<div>
+    <div class="mb-4">
+        <h3>Paramètres</h3>
+        <hr>
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="active_period"
+                {% if period.is_active %} checked="" {% endif %} >
+            <label class="custom-control-label" for="active_period">
+                Activé pour la periode en cours
+            </label>
+        </div>
+    </div>
+    <table class="mb-0 table" id="example">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Pharmacie</th>
+                <th>Propritaires</th>
+                <th>Contacts</th>
+                <th>Commune</th>
+                <th>Situation géographique</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for el in pharmacies %}
+                
+                {% if loop.index == 1 or loop.previtem.locality.slug != el.locality.slug %}
+                    <tr class="table-active">
+                        <td colspan="6">
+                            <h3>
+                                {{ el.locality.name }}
+                            </h3>
+                        </td>
+                    </tr>
+                {% endif %}
+
+                <tr>
+                    <th scope="row">
+                        {{ loop.index }}
+                    </th>
+                    <td>{{ el.pharmacy|lower|title }}</td>
+                    <td>{{ el.owner|lower|title }}</td>
+                    <td>
+                        {% for contact in el.contacts %}
+                            <div>
+                                <span class="badge badge-light">
+                                    <i class="fa fa-phone"></i> {{ contact.replace('TEL.','').replace('TEL','') }}
+                                </span>
+
+                            </div>
+                        {% endfor %}
+                    </td>
+
+                    <td>
+                        {{ el.locality.name }}
+                    </td>
+
+
+
+                    <td>
+                        {{ el.address }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

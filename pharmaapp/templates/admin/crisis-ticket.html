@@ -67,7 +67,6 @@
                         <th>#</th>
                         <th>Demandeur</th>
                         <th>Opérateur</th>
-                        <th>Sujet</th>
                         <th>Date</th>
                         <th>Accepté le...</th>
                         <th>Refusé le...</th>
@@ -102,13 +101,14 @@
                             </td>
 
                             <td>
-                                <a href="">
-                                    {{ el.user_operator.first_name }} {{ el.user_operator.last_name }}
-                                </a>  
-                            </td>
-
-                            <td>
-                                {{ el.crisis.name }}
+                                {% if el.user_operator %}
+                                    <a href="">
+                                        {{ el.user_operator.first_name }} {{ el.user_operator.last_name }}
+                                    </a>  
+                                {% else %}
+                                    -
+                                {% endif %}
+                                
                             </td>
 
                             <td>
@@ -151,6 +151,15 @@
                                 </span>
                             </td>
 
+                        </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="alert alert-dark fade show">
+                                    Il n'y a aucun ticket enregistré pour le moment.
+                                </div>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

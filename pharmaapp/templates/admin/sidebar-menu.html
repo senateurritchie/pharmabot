@@ -55,6 +55,11 @@
                         Utilisateurs
                     </a>
 
+                    <a href="{{ url_for('admin.garde_periods') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.garde_periods' else '' }}">
+                        <i class="metismenu-icon pe-7s-culture"></i>
+                        Periodes de garde
+                    </a>
+
                     <a href="{{ url_for('admin.surveys') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.surveys' else '' }}">
                         <i class="metismenu-icon pe-7s-graph3"></i>
                         Sondages

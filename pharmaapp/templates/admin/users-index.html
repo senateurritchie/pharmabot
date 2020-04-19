@@ -37,12 +37,18 @@
                         <th class="text-center">Quizz</th>
                         <th class="text-center">Tickets</th>
                         <th>Ajouté le...</th>
-                        <th>Heure</th>
+                        <th>Présence</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for el in data %}
+                        {% set create_at_date = el.create_at.strftime("%d %b %Y")%}
+                        {% set create_at_hour = el.create_at.strftime("%H:%M")%}
+
+                        {% set presence_date = el.last_presence.strftime("%d %b %Y") %}
+                        {% set presence_hour = el.last_presence.strftime("%H:%M")%}
+
                         <tr>
                             <th scope="row">
                                 <a href="">
@@ -87,11 +93,12 @@
                             </td>
 
                             <td>
-                                {{ el.create_at.strftime("%d %b %Y")}}
+                                {{ el.create_at.strftime("%d %b %Y à %H:%M") }}
+                                
                             </td>
 
                             <td>
-                                {{ el.create_at.strftime("%H:%M")}}
+                                {{ el.last_presence.strftime("%d %b %Y à %H:%M") }}
                             </td>
                         </tr>
                     {% endfor %}

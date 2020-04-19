@@ -1,0 +1,359 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    PharmaBot &mdash; Gestion des gardes
+{% endblock %}
+
+
+{% block stylesheets %}
+    {{ super() }}
+
+   <style>
+        .upload-area:not(.has-file) .card-footer, .upload-area:not(.has-file) .file-detail{
+            display: none;
+        }
+
+        .upload-area.has-file h3{
+            display: none;
+        }
+
+        .drop-area{
+            height:200px;
+            border:4px dashed #ccc;
+            cursor: pointer;
+        }
+   </style>
+{% endblock %}
+
+
+
+{% block modals %}
+    <!-- Modal insertion -->
+    <form action="{{ url_for('admin.crisis_operator_save') }}" method="POST" class="modal fade" id="modal-insert" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ajouter conseiller clientèle</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="searchBoxAutoCompleteTarget" class="form-group"></div>
+
+                    <div class="form-group" style="position:relative">
+                        <label for="searchBox">Recherche:</label>
+                        <input autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le nom...">
+
+                        <div id="searchBoxAutoComplete" class="main-card card ajax-completion border border-top-0 search-dropdown" style="position:absolute;top:100%;left:0;right:0;z-index:2;background:#fff">
+                            <ul class="list-group list-group-flush"></ul>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Modal suppression -->
+    <form action="{{ url_for('admin.crisis_operator_delete') }}" method="POST" class="modal fade" id="modal-remove" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">confirmation...</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                   <h6>Voulez-vous vraiment revoquer « <span class="username"></span> » comme conseiller clientèle ?</h6>
+                   <input type="hidden" name="operator_id">
+                </div>
+
+                <div class="modal-footer">
+                    <button data-dismiss="modal" type="submit" class="btn btn-dark">Non</button>
+                    <button type="submit" class="btn btn-dark">Oui</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal update -->
+    <div class="modal fade" id="modal-update" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="garde_period_id">
+
+                    <div class="settings"></div>
+                    <div class="pharmacies"></div>
+                </div>
+                <div class="modal-footer">
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block body %}
+
+
+
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-car icon-gradient bg-mean-fruit">
+                    </i>
+                </div>
+                <div>
+                    Conseillers clientèle
+                    <div class="page-title-subheading">
+                    	ils prennent des conversations live sous forme de ticket
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-title-actions">
+                
+                <button type="button" class="btn-shadow mr-3 btn btn-dark" data-toggle="modal" data-target="#modal-insert">
+                    <i class="fa fa-plus"></i> nouveau conseiller clientèle
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+
+    <div class="mb-3 card upload-area">
+
+        
+
+        <form action="{{ url_for('admin.garde_periods_upload') }}" method="post" class="card-body" enctype="multipart/form-data">
+            <h5 class="card-title">
+                Nouvelle période
+            </h5>
+
+            {% for category,message in get_flashed_messages(with_categories=True) %}
+                <div class="alert alert-{{category}}">
+                    <i class="fa fa-{{ 'info-circle' if category == 'info' else 'exclamation-triangle' }}"></i>
+                    {{ message }}
+                    
+                </div>
+            {% endfor %}
+
+            <div  class="drop-area d-flex flex-column justify-content-center align-items-center">
+                
+                <h3>
+                    Cliquer ici pour charger une nouvelle periode
+                </h3>
+
+                <div class="file-detail text-center">
+                    <i class="fa fa-file fa-5x"></i>
+                    <h4 class="file-name"></h4>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <input class="d-none" type="file" name="file" accept=".txt" />
+
+                <div class="form-group">
+                    <div class="custom-control custom-switch">
+                        <input name="save" type="checkbox" class="custom-control-input" id="customSwitch1">
+                        <label class="custom-control-label" for="customSwitch1">
+                            Enregistrer
+                        </label>
+                    </div>
+                </div>
+                
+
+                <button type="submit" class="btn btn-primary ml-auto">
+                    Envoyer
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <h5 class="card-title">Toutes les periodes de garde</h5>
+            <table class="mb-0 table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Période</th>
+                        <th>Consultation</th>
+                        <th>Alertes</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for el in data %}
+                        <tr class="data-item" data-ref="{{ el._id }}">
+                            <th scope="row">
+                                {% if el.is_active %}
+                                    <i class="fa fa-check-circle text-success"></i>
+                                {% endif %}
+                                
+                            </th>
+
+                            <td class="period_title">
+                                <a href="">
+                                    {{ el.title }}
+                                </a>  
+                            </td>
+
+                            <td>
+                                <span class="badge badge-primary">
+                                    0
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge badge-primary">
+                                    0
+                                </span>
+                            </td>
+
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="alert alert-dark fade show">
+                                    Il n'y a aucune période enregistré pour le moment.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ super() }}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <script>
+
+        jQuery(document).ready(function($){
+
+            var modalInsert = $('#modal-insert');
+            var modalRemove = $('#modal-remove');
+            var modalUpdate = $('#modal-update');
+
+
+            modalUpdate.on("change","#active_period", function(e){
+
+                let obj = $(this);
+                obj.attr('disabled','disabled');
+                let period_id = modalUpdate.find('input[name=garde_period_id]').val();
+
+
+                $.ajax({
+                    url:"garde-periods/"+period_id+"/activation",
+                    data:{"state":$(this).prop("checked")},
+                    method:"POST",
+                    success:function(data){
+                        modalUpdate.find(".settings").html("");
+                        modalUpdate.find('input[name=garde_period_id]').val(data.payload.period._id.$oid)
+                        modalUpdate.find('.modal-title').html(data.payload.period.title)
+                        modalUpdate.find(".pharmacies").html(data.payload.html);
+                        modalUpdate.modal('show');
+
+                    },
+                    error:function(a,b,c){
+                        
+                    },
+                    complete:function(){
+                        obj.removeAttr('disabled');
+                    }
+                });
+
+            })
+            
+            modalInsert.on('show.bs.modal', function () {
+                setTimeout(function(){
+                    modalInsert.find('input[type=text]').trigger("focus")
+                },500);
+            })
+
+
+            $("body").on("click",".data-item .period_title",function(e){
+                e.preventDefault();
+                var tr = $(this).parents("tr:first");
+
+                if(tr.hasClass("loading")) return;
+
+                tr.addClass("loading");
+                $.ajax({
+                    url:"garde-periods/"+tr.data('ref')+"/pharmacies",
+                    dataType:"json",
+                    method:"GET",
+                    success:function(data){
+                        modalUpdate.find(".settings").html("");
+                        modalUpdate.find('input[name=garde_period_id]').val(data.payload.period._id.$oid)
+                        modalUpdate.find('.modal-title').html(data.payload.period.title)
+                        modalUpdate.find(".pharmacies").html(data.payload.html);
+                        modalUpdate.modal('show');
+
+                    },
+                    error:function(a,b,c){
+                        
+                    },
+                    complete:function(){
+                        tr.removeClass("loading");
+                    }
+                });
+
+            });
+
+            let uploadzone = $(".upload-area");
+            let input_file = uploadzone.find("input[type=file]");
+            let dropzone = uploadzone.find(".drop-area");
+            let filedetail = uploadzone.find(".file-detail");
+
+            input_file.on("change",function(e){
+                let file = e.target.files[0];
+                let filesize = file.size;
+                let filename = file.name;
+                filedetail.find(".file-name").html(filename);
+
+                uploadzone.addClass("has-file")
+            })
+
+
+            dropzone.on({
+                "click":function(e){
+                    input_file.click();
+                }
+            })
+    
+        });
+    </script>
+{% endblock %}

@@ -29,7 +29,7 @@
 
 {% block modals %}
     <!-- Modal insertion -->
-    <form action="{{ url_for('admin.survey_save') }}" method="POST" class="modal fade" id="modal-insert" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <form action="{{ url_for('admin.quizz_save') }}" method="POST" class="modal fade" id="modal-insert" role="dialog"  data-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -44,8 +44,18 @@
                     <hr>
 
                     <div class="form-group" style="position:relative">
-                        <label for="searchBox">Titre:</label>
-                        <input required="" name="title" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le titre du quizz">
+                        <label>Titre:</label>
+                        <input required="" name="title" autocomplete="off" type="text" class="form-control" placeholder="Saisir le titre du quizz">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="good_resp_msg">Bonne reponse:</label>
+                        <textarea name="good_resp_msg" class="form-control" id="good_resp_msg" placeholder="Saisir le message en cas de bonne reponse"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bad_resp_msg">Mauvaise reponse:</label>
+                        <textarea name="bad_resp_msg"  class="form-control" id="bad_resp_msg" placeholder="Saisir le message en cas de mauvaise reponse"></textarea>
                     </div>
 
                     <div class="form-group" style="position:relative">
@@ -83,7 +93,7 @@
 
 
     <!-- Modal suppression -->
-    <form action="{{ url_for('admin.survey_delete') }}" method="POST" class="modal fade" id="modal-remove" role="dialog" aria-hidden="true">
+    <form action="{{ url_for('admin.quizz_delete') }}" method="POST" class="modal fade" id="modal-remove" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -95,7 +105,7 @@
 
                 <div class="modal-body">
                    <h6>Voulez-vous vraiment supprimer le quizz: « <span class="survey-name"></span> » ?</h6>
-                   <input type="hidden" name="survey_id">
+                   <input type="hidden" name="quizz_id">
                 </div>
 
                 <div class="modal-footer">
@@ -125,9 +135,20 @@
                     <div class="parametres-container">
 
                         <div class="form-group" style="position:relative">
-                            <label for="searchBox">Titre:</label>
-                            <input required="" name="title" autocomplete="off" type="text" class="form-control" id="searchBox" placeholder="Saisir le titre du quizz">
+                            <label >Titre:</label>
+                            <input required="" name="title" autocomplete="off" type="text" class="form-control" placeholder="Saisir le titre du quizz">
                         </div>
+
+                        <div class="form-group">
+                            <label for="good_resp_msg2">Bonne reponse:</label>
+                            <textarea name="good_resp_msg" class="form-control" id="good_resp_msg2" placeholder="Saisir le message en cas de bonne reponse">waoh!!! c'est bien</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bad_resp_msg2">Mauvaise reponse:</label>
+                            <textarea name="bad_resp_msg" class="form-control" id="bad_resp_msg2" placeholder="Saisir le message en cas de mauvaise reponse">Ne baissez pas les bras {{ first_name }}, vous pouvez y arriver</textarea>
+                        </div>
+
 
                         <div class="form-group" style="position:relative">
                             <div class="custom-checkbox custom-control">
@@ -155,7 +176,7 @@
                     </div>
 
 
-                    <input type="hidden" name="survey_id">
+                    <input type="hidden" name="quizz_id">
                     
                     <hr>
                     <h5>Questions</h5>
@@ -226,6 +247,7 @@
                         <th class="text-center">Etat</th>
                         <th class="text-center">Ajouté le...</th>
                         <th class="text-center">Heure</th>
+                        <th class="text-center">Auteur</th>
                     </tr>
                 </thead>
 
@@ -269,7 +291,22 @@
                             {{ el.create_at.strftime("%H:%M") if el.create_at else '-' }}
                         </td>
 
+                        <td>
+                            <a href="">
+                                {{ el.author.username|title}}
+                            </a>
+                        </td>
+
                     </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="alert alert-dark fade show">
+                                    Il n'y a aucun quizz enregistré pour le moment.
+                                </div>
+                            </td>
+                        </tr>
                     {% endfor %}
                 
                 </tbody>
@@ -280,7 +317,7 @@
     <script type="text/template" id="question-tpl">
         <div class="question-item mb-4">
             <div class="form-group" style="position:relative">
-                <label for="question__index__">Question __index__</label>
+                <label for="question__index__"><h3>Question __index__</h3></label>
                 <input required="" name="question" autocomplete="off" type="text" class="form-control" id="question__index__" placeholder="Saisir la question __index__">
             </div>
             
@@ -301,14 +338,8 @@
     </script>
 
     <script type="text/template" id="response-tpl">
-        <div class="response-item mb-3">
+        <div class="response-item mb-3 bg-white p-3">
             <div class="input-group">
-
-                <div class="input-group-prepend">
-                    <div class="input-group-text">
-                        <input name="response_check[__index__]" type="checkbox" >
-                    </div>
-                </div>
 
                 <input required="" name="response[__index__]" placeholder="saisir une reponse..." type="text" class="form-control form-control-sm" />
 
@@ -319,10 +350,29 @@
                 </div>
             </div>
 
-            <div class="mt-2">
-                <textarea placeholder="Saisir un message une fois cette reponse selectionnée" name="autoresponder[__index__]" id="" class="form-control form-control-sm" style="width:100%"></textarea>
+            <div class="form-group mt-3">
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input value="on" type="radio" id="customRadioInline1__index____rep_index__" name="response_check[__index__][__rep_index__]" class="custom-control-input" >
+
+                    <label class="custom-control-label" for="customRadioInline1__index____rep_index__">
+                        Vrai
+                    </label>
+                </div>
+
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input checked value="off" type="radio" id="customRadioInline2__index____rep_index__" name="response_check[__index__][__rep_index__]" class="custom-control-input">
+                    <label class="custom-control-label" for="customRadioInline2__index____rep_index__">
+                        Faux
+                    </label>
+                </div>
             </div>
+
+            <div class="mt-2">
+                <textarea placeholder="Saisir un message une fois cette reponse selectionnée" name="autoresponder[__rep_index__]" id="" class="form-control form-control-sm" style="width:100%"></textarea>
+            </div>
+            
         </div>
+
     </script>
 
 </div>
@@ -364,10 +414,12 @@
             setting_toolbar_btn.on("click",function(e){
 
                 modalUpdateSetting.removeClass("has-update");
-                let survey_id = modalUpdate.find("input[name=survey_id]").val();
+                let quizz_id = modalUpdate.find("input[name=quizz_id]").val();
 
                 let data = {
-                    "title":modalUpdateSetting.find("input[name=title]").val()
+                    "title":modalUpdateSetting.find("input[name=title]").val(),
+                    "good_resp_msg":modalUpdateSetting.find("textarea[name=good_resp_msg]").val(),
+                    "bad_resp_msg":modalUpdateSetting.find("textarea[name=bad_resp_msg]").val()
                 }
 
                 if(modalUpdateSetting.find("input[name=is_active]").prop("checked")){
@@ -379,7 +431,7 @@
                 }
 
                 $.ajax({
-                    url:"survey/"+survey_id+"/save",
+                    url:"quizz/"+quizz_id+"/save",
                     method:"POST",
                     data:data,
                     dataType:"json",
@@ -389,7 +441,8 @@
                 });
             });
 
-            modalUpdateSetting.find("input").on("change keydown", function(e){
+            // modification des attributs d'un quizz
+            modalUpdateSetting.find("input,textarea").on("change keydown", function(e){
                 if(e.type == "keydown"){
                     if(e.keyCode == 27){
                         modalUpdateSetting.removeClass("has-update")
@@ -401,7 +454,7 @@
                 else{
                     modalUpdateSetting.addClass("has-update")
                 }
-            })
+            });
 
 
             function add_question(modal,data){
@@ -443,11 +496,11 @@
                     let toolbar_btn = toolbar.find("button");
                     toolbar_btn.on("click",function(e){
 
-                        let survey_id = modal.find("input[name=survey_id]").val();
+                        let quizz_id = modal.find("input[name=quizz_id]").val();
                         let question_id = tpl.data("ref");
 
                         $.ajax({
-                            url:"surveys/"+survey_id+"/questions/"+question_id+"/save",
+                            url:"quizz/"+quizz_id+"/questions/"+question_id+"/save",
                             method:"POST",
                             dataType:"json",
                             data:{"payload":question_input.val()},
@@ -488,6 +541,7 @@
                         let response_container = tpl.find(".responses-container");
                         let response_count = response_container.find("div.response-item").length;
                         let item = rtpl.replace(/__index__/ig,current_index);
+                        item = item.replace(/__rep_index__/ig,response_count+1);
                         item = $(item);
                         let btn_rem = item.find("button");
 
@@ -499,11 +553,11 @@
 
                                     if(modal.attr("id") == "modal-update" && tpl.data("ref") && item.data("ref")){
 
-                                        let survey_id = modal.find("input[name=survey_id]").val();
+                                        let quizz_id = modal.find("input[name=quizz_id]").val();
                                         let question_id = tpl.data("ref");
                                         let response_id = item.data("ref");
 
-                                        let url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/"+response_id+"/delete";
+                                        let url = "quizz/"+quizz_id+"/questions/"+question_id+"/responses/"+response_id+"/delete";
 
                                         $.ajax({
                                             url:url,
@@ -541,10 +595,11 @@
                         });
 
                         let input_payload = item.find("input[type=text]");
+                        let autoresp_payload = item.find("textarea");
 
                         if(modal.attr("id") == "modal-update"){
 
-                            input_payload.on("keydown",function(e){
+                            item.find("input[type=text],input[type=radio],textarea").on("change keydown",function(e){
                                 if(tpl.data("ref")){
                                     if(e.keyCode == 27){
                                         item.removeClass("has-update")
@@ -565,25 +620,32 @@
                             item.append(toolbar)
 
                             let toolbar_btn = toolbar.find("button");
+
                             toolbar_btn.on("click",function(e){
 
-                                let survey_id = modal.find("input[name=survey_id]").val();
+                                let quizz_id = modal.find("input[name=quizz_id]").val();
                                 let question_id = tpl.data("ref");
                                 let response_id = item.data("ref");
                                 let url = "";
 
                                 if(response_id){
-                                    url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/"+response_id+"/save";
+                                    url = "quizz/"+quizz_id+"/questions/"+question_id+"/responses/"+response_id+"/save";
                                 }
                                 else{
-                                    url = "surveys/"+survey_id+"/questions/"+question_id+"/responses/add";
+                                    url = "quizz/"+quizz_id+"/questions/"+question_id+"/responses/add";
                                 }
+
+                                let checked_box = item.find("input[type=radio]:checked");
 
                                 $.ajax({
                                     url:url,
                                     method:"POST",
                                     dataType:"json",
-                                    data:{payload:input_payload.val()},
+                                    data:{
+                                        payload:input_payload.val(),
+                                        is_true:checked_box.val(),
+                                        auto_responder:autoresp_payload.val()
+                                    },
                                     success:function(data){
 
                                         if(data.status){
@@ -613,7 +675,15 @@
                         }
 
                         if(choice){
-                            input_payload.val(choice.payload)
+                            input_payload.val(choice.payload);
+                            autoresp_payload.val(choice.autoresponder);
+                            if(choice.is_true){
+                                let checkbox_payload = item.find("input[type=radio][value=on]");
+
+                                checkbox_payload.prop("checked", true)
+                                item.find("input[type=radio][value=off]").prop("checked", false)
+                            }
+
                             item.attr("data-ref",choice._id["$oid"]);
                         }
 
@@ -630,9 +700,9 @@
 
                             if(tpl.data("ref")){
 
-                                let survey_id = modal.find("input[name=survey_id]").val();
+                                let quizz_id = modal.find("input[name=quizz_id]").val();
                                 let question_id = tpl.data("ref");
-                                let url = "surveys/"+survey_id+"/questions/"+question_id+"/delete";
+                                let url = "quizz/"+quizz_id+"/questions/"+question_id+"/delete";
 
                                 $.ajax({
                                     url:url,
@@ -683,8 +753,8 @@
                     toolbar.find("button").on("click",function(e){
                         e.preventDefault();
 
-                        let survey_id = modal.find("input[name=survey_id]").val();
-                        let url = "surveys/"+survey_id+"/questions/add";
+                        let quizz_id = modal.find("input[name=quizz_id]").val();
+                        let url = "quizz/"+quizz_id+"/questions/add";
                         tpl.wrap('<form method="POST"></form>')
                         let payload = tpl.parent().serialize();
                         tpl.unwrap();
@@ -760,21 +830,33 @@
                 e.preventDefault();
                 var tr = $(this).parents("tr:first");
 
-                setTimeout(function(){
+                /*setTimeout(function(){
                     modalUpdate.find('input[name=title]').val(tr.find("td.survey-name").text().trim())
                     modalUpdate.find('input[name=is_active]').prop({"checked":tr.data('active') == 1 ? true : false})
                     modalUpdate.find('input[name=is_stick]').prop({"checked":tr.data('stick') == 1 ? true : false})
-                    modalUpdate.find("input[name=survey_id]").val(tr.data('ref'))
+                    modalUpdate.find("input[name=quizz_id]").val(tr.data('ref'))
 
-                },500);
+                },500);*/
 
                 $.ajax({
-                    url:"surveys/"+tr.data('ref'),
+                    url:"quizz/"+tr.data('ref'),
                     dataType:"json",
                     method:"GET",
                     success:function(data){
 
                         modalUpdate.find(".questions-container").html("");
+
+
+                        modalUpdate.find('input[name=title]').val(data.title)
+                        modalUpdate.find('input[name=is_active]').prop({"checked":data.is_active})
+                        modalUpdate.find('input[name=is_stick]').prop({"checked":data.is_stick})
+                        modalUpdate.find("input[name=quizz_id]").val(data._id.$oid)
+
+
+
+                        modalUpdate.find('textarea[name=good_resp_msg]').val(data.good_resp_txt);
+                        modalUpdate.find('textarea[name=bad_resp_msg]').val(data.bad_resp_txt);
+
 
                         for (i in data.questions){
                             add_question(modalUpdate,data.questions[i]);
