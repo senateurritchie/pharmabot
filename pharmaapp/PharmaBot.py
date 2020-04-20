@@ -193,7 +193,7 @@ class PharmaBot(AbstractBot):
 			"""
 			il faut envoyer le nouveau menu
 			"""
-			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			PharmaBot.fbsend.setPersitantMenu(manager._user.psid)
 			manager.save({"has_new_menu":False})
 
 
@@ -259,7 +259,7 @@ class PharmaBot(AbstractBot):
 			"""
 			il faut envoyer le nouveau menu
 			"""
-			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			PharmaBot.fbsend.setPersitantMenu(manager._user.psid)
 			manager.save({"has_new_menu":False})
 
 		# from threading import Thread
@@ -289,7 +289,7 @@ class PharmaBot(AbstractBot):
 			"""
 			il faut envoyer le nouveau menu
 			"""
-			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			PharmaBot.fbsend.setPersitantMenu(manager._user.psid)
 			manager.save({"has_new_menu":False})
 
 
@@ -322,7 +322,7 @@ class PharmaBot(AbstractBot):
 			"""
 			il faut envoyer le nouveau menu
 			"""
-			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			PharmaBot.fbsend.setPersitantMenu(manager._user.psid)
 			manager.save({"has_new_menu":False})
 
 
