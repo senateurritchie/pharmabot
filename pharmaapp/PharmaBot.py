@@ -186,6 +186,8 @@ class PharmaBot(AbstractBot):
 
 		# on verifie si le message contient une proprieté text
 		manager = ContextMessageManager(user_id=sender_psid)
+		manager.save({"last_presence":datetime.datetime.utcnow()})
+
 
 		if "text" in message:
 			

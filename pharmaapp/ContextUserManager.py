@@ -25,6 +25,13 @@ class ContextUser(EventDispatcher):
 		self.locale = locale
 		self.gender = gender
 		self.profile_pic = profile_pic
+
+		# permet de savoir si une question obligatoire est posée
+		# la valeur en quick_reply de cette question y est stockée
+		self.question_processing = None
+		self.last_survey_id = None,
+		self.last_survey_offset = 0,
+
 		# pour enregistrer la localité du visiteur
 		self.currentLocation = None
 		# la pharmacie recherchee pr le visiteur
@@ -95,15 +102,22 @@ class ContextUser(EventDispatcher):
 
 			_id = db.user.insert_one({
 				"psid":self.psid,
+				"one_time_notif_token":None,
+				"question_processing":None,
+				"last_survey_id": None,
+				"last_survey_offset":0,
+				"in_consulting":False,
 				"first_name":None,
 				"last_name":None,
 				"locale":None,
 				"gender":None,
 				"profile_pic":None,
-				"one_time_notif_token":None,
-				"create_at":datetime.datetime.utcnow()
+				"create_at":datetime.datetime.utcnow(),
+				"last_presence":datetime.datetime.utcnow()
 			}).inserted_id
 			self._id = _id
+
+
 		
 		self.update_from_fb()
 

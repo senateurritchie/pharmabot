@@ -183,6 +183,12 @@ class ContextMessageManager(EventDispatcher):
 		# la liste des localités deja affichés du visiteur
 		self.oldDataLocations = None
 		self.offsetDataLocations = 0
+
+		self.question_processing = None
+		self.last_survey_id = None
+		self.last_survey_offset = 0
+		self.one_time_notif_token = None
+
 		# pour savoir si on a deja salué le visiteur
 		self.handshake = False
 		# pour savoir si on a deja dis aurevoir au visiteur
@@ -291,7 +297,8 @@ class ContextMessageManager(EventDispatcher):
 		"""
 		data = {}
 		u_data = {}
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","one_time_notif_token"]
+
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","one_time_notif_token","question_processing","last_survey_id","last_survey_offset"]
 
 		if payload is None:
 			for key in dir(self):
@@ -302,15 +309,14 @@ class ContextMessageManager(EventDispatcher):
 						setattr(self._user,key,data[key])
 						
 					
-
-
 		else:
 			for key,val in payload.items():
 				if not key.startswith("_") and key in self.__dict__:
 					data[key] = val
-					if key in u_key and data[key] is not None:
+					if key in u_key:
 						u_data[key] = data[key]
 						setattr(self._user,key,data[key])
+
 
 		if len(data):
 			db.conversation.update_one(
