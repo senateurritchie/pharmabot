@@ -719,44 +719,73 @@ class ContextMessageManager(EventDispatcher):
 					}
 					fbsend.sendMessage(self._user.psid,resp)
 
-				quizzs = db.quizz.find({"is_active":True,"is_closed":False}).sort("_id",-1).limit(5)
-				quick_replies = []
-				for i,el in enumerate(quizzs):
-					num = 0
-					if i == 0:
-						num = "1️⃣"
-					elif i == 1:
-						num = "2️⃣"
-					elif i == 2:
-						num = "3️⃣"
-					elif i == 3:
-						num = "4️⃣"
-					elif i == 4:
-						num = "5️⃣"
+				quizzs = db.quizz.find({
+					"is_active":True,
+					"is_closed":False
+				}).sort("_id",-1).limit(5)
 
-					text = num + " " + el["title"]
+				if len(quizzs) == 0:
+
+					text:str = "Je n'ai pas de quizz pour l'heure, veux-tu être informé dès disponibilité ?"
 					resp:dict = {
 						"text":text,
 					}
-
-					quick_replies.append({
-						"content_type":"text",
-						"title":text,
-						"payload":"QUIZZ_SELECT_"+str(el["_id"])
-					})
-
 					fbsend.sendMessage(self._user.psid,resp)
 
-				text:str = "Voulez-vous participer à quelle enquête ?"
-				resp:dict = {
-					"text":text,
-					"quick_replies":quick_replies
-				}
-				fbsend.sendMessage(self._user.psid,resp)
+					resp:dict = {
+						"attachment": {
+					    	"type":"template",
+					      	"payload": {
+					        	"template_type":"one_time_notif_req",
+					        	"title":"Quizz Alerte",
+					        	"payload":"OPTIN_QUIZZ_ALERT"
+					      }
+					    }
+					}
 
-				self.save({
-					"question_processing":"QUIZZ_LIST"
-				})
+					fbsend.sendMessage(self._user.psid,resp)
+					self.save({
+						"question_processing":None,
+					})
+
+				else:
+					quick_replies = []
+					for i,el in enumerate(quizzs):
+						num = 0
+						if i == 0:
+							num = "1️⃣"
+						elif i == 1:
+							num = "2️⃣"
+						elif i == 2:
+							num = "3️⃣"
+						elif i == 3:
+							num = "4️⃣"
+						elif i == 4:
+							num = "5️⃣"
+
+						text = num + " " + el["title"]
+						resp:dict = {
+							"text":text,
+						}
+
+						quick_replies.append({
+							"content_type":"text",
+							"title":text,
+							"payload":"QUIZZ_SELECT_"+str(el["_id"])
+						})
+
+						fbsend.sendMessage(self._user.psid,resp)
+
+					text:str = "Voulez-vous participer à quelle enquête ?"
+					resp:dict = {
+						"text":text,
+						"quick_replies":quick_replies
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+					self.save({
+						"question_processing":"QUIZZ_LIST"
+					})
 
 				return True
 
@@ -1000,47 +1029,74 @@ class ContextMessageManager(EventDispatcher):
 					}
 					fbsend.sendMessage(self._user.psid,resp)
 
-				surveys = db.survey.find({"is_active":True,"is_closed":False}).sort("_id",-1).limit(5)
-				quick_replies = []
-				for i,el in enumerate(surveys):
-					num = 0
-					if i == 0:
-						num = "1️⃣"
-					elif i == 1:
-						num = "2️⃣"
-					elif i == 2:
-						num = "3️⃣"
-					elif i == 3:
-						num = "4️⃣"
-					elif i == 4:
-						num = "5️⃣"
+				surveys = db.survey.find({
+					"is_active":True,
+					"is_closed":False
+				}).sort("_id",-1).limit(5)
 
-					text = num + " " + el["title"]
+				if len(surveys) == 0:
+
+					text:str = "Je n'ai pas de sondages pour l'heure, veux-tu être informé dès disponibilité ?"
 					resp:dict = {
 						"text":text,
 					}
-
-					quick_replies.append({
-						"content_type":"text",
-						"title":text,
-						"payload":"SURVEY_SELECT_"+str(el["_id"])
-					})
-
 					fbsend.sendMessage(self._user.psid,resp)
 
-				text:str = "Voulez-vous participer à quelle enquête ?"
-				resp:dict = {
-					"text":text,
-					"quick_replies":quick_replies
-				}
-				fbsend.sendMessage(self._user.psid,resp)
+					resp:dict = {
+						"attachment": {
+					    	"type":"template",
+					      	"payload": {
+					        	"template_type":"one_time_notif_req",
+					        	"title":"Sondages Alerte",
+					        	"payload":"OPTIN_SURVEY_ALERT"
+					      }
+					    }
+					}
 
-				self.save({
-					"question_processing":"SURVEY_LIST"
-				})
+					fbsend.sendMessage(self._user.psid,resp)
+					self.save({
+						"question_processing":None,
+					})
+				else:
+					quick_replies = []
+					for i,el in enumerate(surveys):
+						num = 0
+						if i == 0:
+							num = "1️⃣"
+						elif i == 1:
+							num = "2️⃣"
+						elif i == 2:
+							num = "3️⃣"
+						elif i == 3:
+							num = "4️⃣"
+						elif i == 4:
+							num = "5️⃣"
+
+						text = num + " " + el["title"]
+						resp:dict = {
+							"text":text,
+						}
+
+						quick_replies.append({
+							"content_type":"text",
+							"title":text,
+							"payload":"SURVEY_SELECT_"+str(el["_id"])
+						})
+
+						fbsend.sendMessage(self._user.psid,resp)
+
+					text:str = "Voulez-vous participer à quelle enquête ?"
+					resp:dict = {
+						"text":text,
+						"quick_replies":quick_replies
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+					self.save({
+						"question_processing":"SURVEY_LIST"
+					})
 
 				return True
-
 
 			elif payload == "CONSULTATION_REQUEST":
 				"""
