@@ -112,7 +112,7 @@ class PharmaBot(AbstractBot):
 	@app.route("/privacy-policy")
 	@app.route("/politique-de-confidentialite")
 	def privacy_policy():
-		return render("privacy-policy.html", title=PharmaBot.name+' v'+PharmaBot.version)
+		return render("privacy-policy.html.jinja2")
 
 	@app.route("/robots.txt")
 	def robots():
@@ -123,7 +123,7 @@ class PharmaBot(AbstractBot):
 
 	@app.route("/webview")
 	def webview():
-		resp = response(render("webview.html"))
+		resp = response(render("webview.html.jinja2"))
 		resp.headers.set("X-Frame-Options","ALLOW-FROM https://www.facebook.com/")
 		resp.headers.set("X-Frame-Options","ALLOW-FROM https://www.messenger.com/")
 		return resp
