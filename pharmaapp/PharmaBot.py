@@ -211,6 +211,9 @@ class PharmaBot(AbstractBot):
 				# il faut retrouver la consultation
 				manager.processConsultingFlow(message)
 
+			elif manager._user.question_processing:
+				message["nlp"] = {}
+				te = manager.handle_quick_reply(message)
 			else:
 				if audio_attachment['type'] == "audio":
 					audio_path = audio_attachment['payload']["url"]

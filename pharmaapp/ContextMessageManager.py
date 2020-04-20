@@ -483,6 +483,277 @@ class ContextMessageManager(EventDispatcher):
 				self.handle_quick_reply(m)
 				return True
 
+			elif payload == "OPTIN_SURVEY_ALERT":
+				"""
+				abonnement à la newsletter
+				"""
+				optin_type = message["quick_reply"]["type"]
+				one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
+				self.save({"one_time_notif_token":one_time_notif_token})
+
+				resp:dict = {
+					"text":"Félicitation, vous serez maintenant informé pour le prochain sondage",
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				m = {
+					"nlp":{},
+					"quick_reply":{
+						"payload":"MAIN_MENU"
+					},
+					"insta":2
+				}
+				self.handle_quick_reply(m)
+
+				return True
+
+			elif payload == "SURVEY_STARTED": 
+				"""
+				demarrage d'un sondage
+				"""
+
+				survey = db.survey.find_one({
+					"_id":self._user.last_survey_id
+				})
+
+				if survey:
+					new_offset = 0
+					for i,el in enumerate(survey["questions"]):
+						if self._user.last_survey_offset == i:
+							new_offset = i+1
+
+							resp:dict = {
+								"text":"[Question ❓]\r\n"+el["payload"],
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
+							quick_replies = []
+
+							for pos,choice in enumerate(el["choices"]):
+
+								num = 0
+								if pos == 0:
+									num = "1️⃣"
+								elif pos == 1:
+									num = "2️⃣"
+								elif pos == 2:
+									num = "3️⃣"
+								elif pos == 3:
+									num = "4️⃣"
+								elif pos == 4:
+									num = "5️⃣"
+
+								resp:dict = {
+									"text":"Reponse "+num+"\r\n"+choice["payload"],
+								}
+								fbsend.sendMessage(self._user.psid,resp)
+								quick_replies.append({
+									"content_type":"text",
+									"title":"Reponse "+num,
+									"payload":"SURVEY_RESPONSE_"+str(choice["_id"])
+								})
+
+
+							resp:dict = {
+								"text":"Selectionnez une reponse svp",
+								"quick_replies":quick_replies
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
+							break
+
+				return True
+
+			elif payload.startswith("SURVEY_RESPONSE_"):
+				"""
+				l'utilisateur vient de selectionner une reponse dans un sondage
+				"""
+
+				survey = db.survey.find_one({
+					"_id":self._user.last_survey_id
+				})
+
+				if survey:
+
+					r = re.search(r"SURVEY_RESPONSE_(.+)",payload)
+					choice_id = ObjectId(r.group(1))
+					question = survey["questions"][self._user.last_survey_offset]
+					new_offset = self._user.last_survey_offset + 1
+
+					print(new_offset,len(survey["questions"]))
+
+					if new_offset >= len(survey["questions"]):
+						"""
+						le questionnaire vient d'etre epuisé
+						on met fin à ce sondage
+						"""
+
+						resp:dict = {
+							"text":"{{user_first_name}}, merci d'avoir participé a cette enquête\r\npour ne rien manquer à notre actualité, abonne toi gratuitement à notre newsletter."
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
+						resp:dict = {
+							"attachment": {
+						    	"type":"template",
+						      	"payload": {
+						        	"template_type":"one_time_notif_req",
+						        	"title":"Actualité JAMII",
+						        	"payload":"OPTIN_NEWS_ALERT"
+						      }
+						    }
+						}
+						print(fbsend.sendMessage(self._user.psid,resp).json())
+						self.save({
+							"question_processing":None,
+						})
+
+					else:
+
+						is_exists = []
+						if "users" in survey:
+							is_exists = [i for i in survey["users"] if i["_id"] == self._user._id]
+						
+						if len(is_exists) == 0:
+							db.survey.update_one({
+								"_id":survey["_id"]
+							},{
+								"$push":{
+									"users":{
+										"_id":self._user._id,
+										"finish_at":None,
+										"startd_at":datetime.datetime.utcnow()
+									}
+								}
+							})
+
+
+						for i,question in enumerate(survey["questions"]):
+							if self._user.last_survey_offset == i:
+								for y,choice in enumerate(question["choices"]):
+									if choice["_id"] == choice_id:
+										total = survey["questions"][i]["choices"][y]["answers"]
+										survey["questions"][i]["choices"][y]["answers"] = total+1
+
+										db.survey.update_one({
+											"_id":survey["_id"],
+										},{
+											"$set":{"questions":survey["questions"]}
+										})
+										break
+									
+								break
+
+						self.save({
+							"last_survey_offset":new_offset,
+						})
+
+						self._user.last_survey_offset = new_offset
+						message["quick_reply"]["payload"] = "SURVEY_STARTED"
+						message["insta"] = 2
+						return self.handle_quick_reply(message)
+
+
+				return True
+
+			elif payload.startswith("SURVEY_SELECT_"):
+				"""
+				l'utilisateur vient de selectionner un sondage
+				"""
+
+				r = re.search(r"SURVEY_SELECT_(.+)",payload)
+				survey_id = r.group(1)
+				survey = None
+
+				if survey_id == "CURRENT":
+					survey = db.survey.find({
+						"is_active":True
+					}).sort("_id",-1).limit(1)
+
+					if survey:
+						survey = survey[0]
+						survey_id = str(survey["_id"])
+				else:
+					survey = db.survey.find_one({
+						"_id":ObjectId(survey_id)
+					})
+
+				if survey:
+
+					resp:dict = {
+						"text":"[Enquête 📊]\r\n"+survey["title"],
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+					self.save({
+						"question_processing":"SURVEY_STARTED",
+						"last_survey_id":survey["_id"],
+						"last_survey_offset":0,
+					})
+
+					self._user.last_survey_id = survey["_id"]
+					self._user.last_survey_offset = 0
+
+					message["quick_reply"]["payload"] = "SURVEY_STARTED"
+					message["insta"] = 2
+					return self.handle_quick_reply(message)
+
+				return True
+
+			elif payload == "SURVEY_LIST": 
+				"""
+				presentation de la liste des sondages en cours
+				"""
+
+				if "insta" not in message:
+					text:str = "Enquêtes en cours"
+					resp:dict = {
+						"text":text,
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+				surveys = db.survey.find({"is_active":True,"is_closed":False}).sort("_id",-1).limit(5)
+				quick_replies = []
+				for i,el in enumerate(surveys):
+					num = 0
+					if i == 0:
+						num = "1️⃣"
+					elif i == 1:
+						num = "2️⃣"
+					elif i == 2:
+						num = "3️⃣"
+					elif i == 3:
+						num = "4️⃣"
+					elif i == 4:
+						num = "5️⃣"
+
+					text = num + " " + el["title"]
+					resp:dict = {
+						"text":text,
+					}
+
+					quick_replies.append({
+						"content_type":"text",
+						"title":text,
+						"payload":"SURVEY_SELECT_"+str(el["_id"])
+					})
+
+					fbsend.sendMessage(self._user.psid,resp)
+
+				text:str = "Voulez-vous participer à quelle enquête ?"
+				resp:dict = {
+					"text":text,
+					"quick_replies":quick_replies
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"SURVEY_LIST"
+				})
+
+				return True
+
+
 			elif payload == "CONSULTATION_REQUEST":
 				"""
 				il s'agit d'une demande de consultation
