@@ -107,17 +107,27 @@ class FBSend:
           					"call_to_actions":[
 				                {
 				                    "type": "postback",
-				                    "title": "🔎 Nouvelle recherche",
+				                    "title": "Nouvelle recherche 🔎",
 				                    "payload": "MAIN_MENU",
 				                },
 				                {
-				                    "type": "postback",
-				                    "title": "💉 Parler à un medecin",
-				                    "payload": "CONSULTATION_REQUEST",
-				                },
+									"type":"postback",
+									"title":"Sondages 📊",
+									"payload":"SURVEY_LIST"
+								},
+								{
+									"type":"postback",
+									"title":"Quizz 🏆",
+									"payload":"QUIZZ_LIST"
+								},
+				                # {
+				                #     "type": "postback",
+				                #     "title": "💉 Parler à un medecin",
+				                #     "payload": "CONSULTATION_REQUEST",
+				                # },
           						{
 				                    "type": "postback",
-				                    "title": "ℹ A Propos",
+				                    "title": "A Propos ℹ",
 				                    "payload": "ABOUT_US"
 				                }
           					]

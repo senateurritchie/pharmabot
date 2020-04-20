@@ -46,9 +46,9 @@ class ContextUser(EventDispatcher):
 		self.preferred_localities = None
 		self.rate = None
 		self.in_consulting = False
-		self.one_time_notif_token = None
+		self.survey_one_time_notif_token = None
+		self.quiz_one_time_notif_token = None
 		
-
 	
 	def hydrate(self,payload):
 		for key,val in payload.items():
@@ -105,7 +105,8 @@ class ContextUser(EventDispatcher):
 
 			_id = db.user.insert_one({
 				"psid":self.psid,
-				"one_time_notif_token":None,
+				"survey_one_time_notif_token":None,
+				"quiz_one_time_notif_token":None,
 				"question_processing":None,
 				"last_survey_id": None,
 				"last_survey_offset":0,

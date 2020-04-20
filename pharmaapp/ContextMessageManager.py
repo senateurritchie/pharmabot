@@ -189,7 +189,8 @@ class ContextMessageManager(EventDispatcher):
 		self.last_survey_offset = 0
 		self.last_quizz_id = None
 		self.last_quizz_offset = 0
-		self.one_time_notif_token = None
+		self.survey_one_time_notif_token = None
+		self.quiz_one_time_notif_token = None
 
 		# pour savoir si on a deja salué le visiteur
 		self.handshake = False
@@ -210,7 +211,6 @@ class ContextMessageManager(EventDispatcher):
 		# le timestamp de la derniere action effectuee dans la conversation
 		self.last_presence = self.create_at
 		self.rate = None
-		self.one_time_notif_token = None
 
 		# enregistre tout les messages de la conversation
 
@@ -300,7 +300,7 @@ class ContextMessageManager(EventDispatcher):
 		data = {}
 		u_data = {}
 
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset"]
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset"]
 
 		if payload is None:
 			for key in dir(self):
@@ -483,13 +483,298 @@ class ContextMessageManager(EventDispatcher):
 				self.handle_quick_reply(m)
 				return True
 
+			elif payload == "OPTIN_QUIZ_ALERT":
+				"""
+				abonnement à la newsletter
+				"""
+				optin_type = message["quick_reply"]["type"]
+				one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
+				self.save({
+					"quiz_one_time_notif_token":{
+						"value":one_time_notif_token,
+						"used":False
+					}
+				})
+
+				resp:dict = {
+					"text":"Félicitation, vous serez maintenant informé pour le prochain quizz",
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				m = {
+					"nlp":{},
+					"quick_reply":{
+						"payload":"MAIN_MENU"
+					},
+					"insta":2
+				}
+				self.handle_quick_reply(m)
+
+				return True
+
+
+			elif payload == "QUIZ_STARTED": 
+				"""
+				demarrage d'un quizz
+				"""
+
+				quizz = db.quizz.find_one({
+					"_id":self._user.last_quizz_id
+				})
+
+				if quizz:
+					new_offset = 0
+					for i,el in enumerate(quizz["questions"]):
+						if self._user.last_quizz_offset == i:
+							new_offset = i+1
+
+							resp:dict = {
+								"text":"[Question ❓]\r\n"+el["payload"],
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
+							quick_replies = []
+
+							for pos,choice in enumerate(el["choices"]):
+
+								num = 0
+								if pos == 0:
+									num = "1️⃣"
+								elif pos == 1:
+									num = "2️⃣"
+								elif pos == 2:
+									num = "3️⃣"
+								elif pos == 3:
+									num = "4️⃣"
+								elif pos == 4:
+									num = "5️⃣"
+
+								resp:dict = {
+									"text":"Reponse "+num+"\r\n"+choice["payload"],
+								}
+								fbsend.sendMessage(self._user.psid,resp)
+								quick_replies.append({
+									"content_type":"text",
+									"title":"Reponse "+num,
+									"payload":"QUIZZ_RESPONSE_"+str(choice["_id"])
+								})
+
+
+							resp:dict = {
+								"text":"Selectionnez une reponse svp",
+								"quick_replies":quick_replies
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
+							break
+
+				return True
+
+			elif payload.startswith("QUIZZ_RESPONSE_"):
+				"""
+				l'utilisateur vient de selectionner une reponse dans un quizz
+				"""
+
+				quizz = db.quizz.find_one({
+					"_id":self._user.last_quizz_id
+				})
+
+				if quizz:
+
+					r = re.search(r"QUIZZ_RESPONSE_(.+)",payload)
+					choice_id = ObjectId(r.group(1))
+					question = quizz["questions"][self._user.last_quizz_offset]
+					new_offset = self._user.last_quizz_offset + 1
+
+					print(new_offset,len(quizz["questions"]))
+
+					if new_offset >= len(quizz["questions"]):
+						"""
+						le questionnaire vient d'etre epuisé
+						on met fin à ce quizz
+						"""
+
+						resp:dict = {
+							"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
+						resp:dict = {
+							"attachment": {
+						    	"type":"template",
+						      	"payload": {
+						        	"template_type":"one_time_notif_req",
+						        	"title":"Quizz Alerte",
+						        	"payload":"OPTIN_QUIZZ_ALERT"
+						      }
+						    }
+						}
+						print(fbsend.sendMessage(self._user.psid,resp).json())
+						self.save({
+							"question_processing":None,
+						})
+
+					else:
+
+						is_exists = []
+						if "users" in quizz:
+							is_exists = [i for i in quizz["users"] if i["_id"] == self._user._id]
+						
+						if len(is_exists) == 0:
+							db.quizz.update_one({
+								"_id":quizz["_id"]
+							},{
+								"$push":{
+									"users":{
+										"_id":self._user._id,
+										"finish_at":None,
+										"startd_at":datetime.datetime.utcnow()
+									}
+								}
+							})
+
+
+						for i,question in enumerate(quizz["questions"]):
+							if self._user.last_quizz_offset == i:
+								for y,choice in enumerate(question["choices"]):
+									if choice["_id"] == choice_id:
+										total = quizz["questions"][i]["choices"][y]["answers"]
+										quizz["questions"][i]["choices"][y]["answers"] = total+1
+
+										db.quizz.update_one({
+											"_id":quizz["_id"],
+										},{
+											"$set":{"questions":quizz["questions"]}
+										})
+										break
+									
+								break
+
+						self.save({
+							"last_quizz_offset":new_offset,
+						})
+
+						self._user.last_quizz_offset = new_offset
+						message["quick_reply"]["payload"] = "QUIZZ_STARTED"
+						message["insta"] = 2
+						return self.handle_quick_reply(message)
+
+
+				return True
+
+			elif payload.startswith("QUIZZ_SELECT_"):
+				"""
+				l'utilisateur vient de selectionner un quizz
+				"""
+
+				r = re.search(r"QUIZZ_SELECT_(.+)",payload)
+				quizz_id = r.group(1)
+				quizz = None
+
+				if quizz_id == "CURRENT":
+					quizz = db.quizz.find({
+						"is_active":True
+					}).sort("_id",-1).limit(1)
+
+					if quizz:
+						quizz = quizz[0]
+						quizz_id = str(quizz["_id"])
+				else:
+					quizz = db.quizz.find_one({
+						"_id":ObjectId(quizz_id)
+					})
+
+				if quizz:
+
+					resp:dict = {
+						"text":"[Enquête 📊]\r\n"+quizz["title"],
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+					self.save({
+						"question_processing":"QUIZZ_STARTED",
+						"last_quizz_id":quizz["_id"],
+						"last_quizz_offset":0,
+					})
+
+					self._user.last_quizz_id = quizz["_id"]
+					self._user.last_quizz_offset = 0
+
+					message["quick_reply"]["payload"] = "QUIZZ_STARTED"
+					message["insta"] = 2
+					return self.handle_quick_reply(message)
+
+				return True
+
+			elif payload == "QUIZZ_LIST": 
+				"""
+				presentation de la liste des quizz en cours
+				"""
+
+				if "insta" not in message:
+					text:str = "Enquêtes en cours"
+					resp:dict = {
+						"text":text,
+					}
+					fbsend.sendMessage(self._user.psid,resp)
+
+				quizzs = db.quizz.find({"is_active":True,"is_closed":False}).sort("_id",-1).limit(5)
+				quick_replies = []
+				for i,el in enumerate(quizzs):
+					num = 0
+					if i == 0:
+						num = "1️⃣"
+					elif i == 1:
+						num = "2️⃣"
+					elif i == 2:
+						num = "3️⃣"
+					elif i == 3:
+						num = "4️⃣"
+					elif i == 4:
+						num = "5️⃣"
+
+					text = num + " " + el["title"]
+					resp:dict = {
+						"text":text,
+					}
+
+					quick_replies.append({
+						"content_type":"text",
+						"title":text,
+						"payload":"QUIZZ_SELECT_"+str(el["_id"])
+					})
+
+					fbsend.sendMessage(self._user.psid,resp)
+
+				text:str = "Voulez-vous participer à quelle enquête ?"
+				resp:dict = {
+					"text":text,
+					"quick_replies":quick_replies
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"QUIZZ_LIST"
+				})
+
+				return True
+
+			#######################
+
+
+
 			elif payload == "OPTIN_SURVEY_ALERT":
 				"""
 				abonnement à la newsletter
 				"""
 				optin_type = message["quick_reply"]["type"]
 				one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
-				self.save({"one_time_notif_token":one_time_notif_token})
+				self.save({
+					"survey_one_time_notif_token":{
+						"value":one_time_notif_token,
+						"used":False
+					}
+				})
 
 				resp:dict = {
 					"text":"Félicitation, vous serez maintenant informé pour le prochain sondage",
@@ -506,6 +791,8 @@ class ContextMessageManager(EventDispatcher):
 				self.handle_quick_reply(m)
 
 				return True
+
+			
 
 			elif payload == "SURVEY_STARTED": 
 				"""
@@ -589,7 +876,7 @@ class ContextMessageManager(EventDispatcher):
 						"""
 
 						resp:dict = {
-							"text":"{{user_first_name}}, merci d'avoir participé a cette enquête\r\npour ne rien manquer à notre actualité, abonne toi gratuitement à notre newsletter."
+							"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains sondages."
 						}
 						fbsend.sendMessage(self._user.psid,resp)
 
@@ -598,8 +885,8 @@ class ContextMessageManager(EventDispatcher):
 						    	"type":"template",
 						      	"payload": {
 						        	"template_type":"one_time_notif_req",
-						        	"title":"Actualité JAMII",
-						        	"payload":"OPTIN_NEWS_ALERT"
+						        	"title":"Sondages Alerte",
+						        	"payload":"OPTIN_SURVEY_ALERT"
 						      }
 						    }
 						}
@@ -2070,9 +2357,19 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Comment ça marche ❓",
-							"payload":"HOW_IT_WORKS"
+							"title":"📊 Sondages",
+							"payload":"SURVEY_LIST"
+						},
+						{
+							"content_type":"text",
+							"title":"🏆 Quizz",
+							"payload":"QUIZZ_LIST"
 						}
+						# {
+						# 	"content_type":"text",
+						# 	"title":"Comment ça marche ❓",
+						# 	"payload":"HOW_IT_WORKS"
+						# }
 					]
 				}
 
