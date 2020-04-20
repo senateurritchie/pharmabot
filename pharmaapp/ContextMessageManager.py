@@ -187,6 +187,8 @@ class ContextMessageManager(EventDispatcher):
 		self.question_processing = None
 		self.last_survey_id = None
 		self.last_survey_offset = 0
+		self.last_quizz_id = None
+		self.last_quizz_offset = 0
 		self.one_time_notif_token = None
 
 		# pour savoir si on a deja salué le visiteur
@@ -298,7 +300,7 @@ class ContextMessageManager(EventDispatcher):
 		data = {}
 		u_data = {}
 
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","one_time_notif_token","question_processing","last_survey_id","last_survey_offset"]
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset"]
 
 		if payload is None:
 			for key in dir(self):
@@ -409,6 +411,13 @@ class ContextMessageManager(EventDispatcher):
 
 	def handle_quick_reply(self,message):
 		fbsend = FBSend()
+
+
+		if "quick_reply" not in message:
+			if self._user.question_processing is not None:
+				message["quick_reply"] = {
+					"payload":self._user.question_processing
+				}
 
 		
 		if "quick_reply" in message:

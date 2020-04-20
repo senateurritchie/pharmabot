@@ -29,8 +29,11 @@ class ContextUser(EventDispatcher):
 		# permet de savoir si une question obligatoire est posée
 		# la valeur en quick_reply de cette question y est stockée
 		self.question_processing = None
-		self.last_survey_id = None,
-		self.last_survey_offset = 0,
+		self.last_survey_id = None
+		self.last_survey_offset = 0
+		self.last_quizz_id = None
+		self.last_quizz_offset = 0
+
 
 		# pour enregistrer la localité du visiteur
 		self.currentLocation = None
@@ -106,6 +109,8 @@ class ContextUser(EventDispatcher):
 				"question_processing":None,
 				"last_survey_id": None,
 				"last_survey_offset":0,
+				"last_quizz_id": None,
+				"last_quizz_offset":0,
 				"in_consulting":False,
 				"first_name":None,
 				"last_name":None,
