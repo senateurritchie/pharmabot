@@ -243,7 +243,11 @@ def activate_garde_period(garde_period_id):
 	else:
 		result['status'] = True
 
-		if request.form.get("state") == True:
+		state = int(request.form.get("state"))
+
+
+
+		if state == 1:
 			db.garde_period.update_many({
 				"is_active":True
 			},{
@@ -252,7 +256,7 @@ def activate_garde_period(garde_period_id):
 				}
 			})
 
-			db.garde_period.update_many({
+			db.garde_period.update_one({
 				"_id":garde_period["_id"]
 			},{
 				"$set":{
@@ -260,7 +264,7 @@ def activate_garde_period(garde_period_id):
 				}
 			})
 
-		elif request.form.get("state") == False:
+		elif state == 0:
 
 			db.garde_period.update_many({
 				"_id":garde_period["_id"]

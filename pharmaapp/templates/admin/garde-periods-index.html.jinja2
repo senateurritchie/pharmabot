@@ -277,15 +277,10 @@
 
                 $.ajax({
                     url:"garde-periods/"+period_id+"/activation",
-                    data:{"state":$(this).prop("checked")},
+                    data:{"state":$(this).prop("checked") ? 1 : 0},
                     method:"POST",
                     success:function(data){
-                        modalUpdate.find(".settings").html("");
-                        modalUpdate.find('input[name=garde_period_id]').val(data.payload.period._id.$oid)
-                        modalUpdate.find('.modal-title').html(data.payload.period.title)
-                        modalUpdate.find(".pharmacies").html(data.payload.html);
-                        modalUpdate.modal('show');
-
+                       
                     },
                     error:function(a,b,c){
                         
