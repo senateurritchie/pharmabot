@@ -484,7 +484,7 @@ class ContextMessageManager(EventDispatcher):
 				self.handle_quick_reply(m)
 				return True
 
-			elif payload == "OPTIN_QUIZ_ALERT":
+			elif payload == "OPTIN_QUIZZ_ALERT":
 				"""
 				abonnement à la newsletter
 				"""
