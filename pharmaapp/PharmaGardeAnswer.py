@@ -247,41 +247,8 @@ class PharmaGardeAnswer(Answer):
 						self.fbsend.sendMessage(sender_psid,resp)
 
 					manager.saveUserSearch("normal")
+					manager.saveGardePeriodView()
 
-
-					
-
-
-					# if random.choice([1,2]) == 2:
-					# 	text = "Je t'avais deja dit 🏋️‍♂️ 🧞 ce service c'est tout simplement géniaaal 🔥🔥\r\neuhh 👀 désolé je suis un peu trop euphorique c'est temps-ci bref."
-						
-					# 	resp:dict = {"text":text}
-					# 	ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-					# 	manager.addItem(ctx)
-					# 	self.fbsend.sendMessage(sender_psid,resp)
-
-					# 	# un git du style je suis content
-					# 	resp:dict = {
-					# 		"attachment": {
-				 #            	"type": "image",
-				 #                "payload": {
-				 #                    "attachment_id": random.choice(GIPHY.HAPPY),
-				 #                }
-					# 		}
-					# 	}
-					# 	self.fbsend.sendMessage(sender_psid,resp)
-					# else:
-					# 	# un git du style je suis content
-					# 	resp:dict = {
-					# 		"attachment": {
-				 #            	"type": "image",
-				 #                "payload": {
-				 #                    "attachment_id": random.choice(GIPHY.SUCCESS),
-				 #                }
-					# 		}
-					# 	}
-					# 	self.fbsend.sendMessage(sender_psid,resp)
-					# 	time.sleep(random.choice([3,2,1]))
 
 					if manager.check_if_user_subscribe_to_current_locality_alert() == False:
 

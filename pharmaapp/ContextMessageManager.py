@@ -2929,6 +2929,17 @@ class ContextMessageManager(EventDispatcher):
 
 		return isSubscribed
 
+	def saveGardePeriodView(self):
+		"""
+		pour enregistrer les vues pour une periode de garde
+		"""
+		garde_period = db.garde_period.find_one({"is_active":True})
+		db.garde_period_view.insert_one({
+			"_id":garde_period["_id"],
+			"user_id":self._user._id,
+			"create_at":datetime.datetime.utcnow()
+		})
+
 	def saveUserSearch(self,mode:str=None):
 
 		if self._user.currentZone and self._user.currentLocation:
