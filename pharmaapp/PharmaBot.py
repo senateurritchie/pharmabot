@@ -188,6 +188,14 @@ class PharmaBot(AbstractBot):
 		manager = ContextMessageManager(user_id=sender_psid)
 		manager.save({"last_presence":datetime.datetime.utcnow()})
 
+		if manager._user.has_new_menu:
+			"""
+			il faut envoyer le nouveau menu
+			"""
+			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			manager.save({"has_new_menu":False})
+
+
 
 		if "text" in message:
 			
@@ -246,6 +254,13 @@ class PharmaBot(AbstractBot):
 		manager = ContextMessageManager(user_id=sender_psid)
 		PharmaBot.fbsend.sendAction(sender_psid,"mark_seen")
 
+		if manager._user.has_new_menu:
+			"""
+			il faut envoyer le nouveau menu
+			"""
+			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			manager.save({"has_new_menu":False})
+
 		# from threading import Thread
 
 
@@ -267,6 +282,16 @@ class PharmaBot(AbstractBot):
 		"""
 		Handles messaging_referrals events
 		"""
+		manager = ContextMessageManager(user_id=sender_psid)
+
+		if manager._user.has_new_menu:
+			"""
+			il faut envoyer le nouveau menu
+			"""
+			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			manager.save({"has_new_menu":False})
+
+
 
 		referrals = [
 			"CONSULTATION_REQUEST"
@@ -275,7 +300,6 @@ class PharmaBot(AbstractBot):
 		if received_referral["ref"] not in referrals:
 			return
 
-		manager = ContextMessageManager(user_id=sender_psid)
 		m = {
 			"nlp":{},
 			"quick_reply":{
@@ -284,16 +308,30 @@ class PharmaBot(AbstractBot):
 		}
 		manager.handle_quick_reply(m)
 
+
+		
+
 	def handleOptin(self,sender_psid, received_optin):
 		"""
 		Handles messaging_referrals events
 		"""
 		manager = ContextMessageManager(user_id=sender_psid)
+
+		if manager._user.has_new_menu:
+			"""
+			il faut envoyer le nouveau menu
+			"""
+			PharmaBot.fbsend.setPersitantMenu(manager._user.has_new_menu)
+			manager.save({"has_new_menu":False})
+
+
 		m = {
 			"nlp":{},
 			"quick_reply":received_optin,
 		}
 		manager.handle_quick_reply(m)
+
+
 
 		
 	########################### DEFINITION DES BUILTINS EVENTS ##########################

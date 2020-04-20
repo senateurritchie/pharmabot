@@ -33,6 +33,7 @@ class ContextUser(EventDispatcher):
 		self.last_survey_offset = 0
 		self.last_quizz_id = None
 		self.last_quizz_offset = 0
+		self.has_new_menu = False
 
 
 		# pour enregistrer la localité du visiteur
@@ -112,6 +113,7 @@ class ContextUser(EventDispatcher):
 				"last_survey_offset":0,
 				"last_quizz_id": None,
 				"last_quizz_offset":0,
+				"has_new_menu":False,
 				"in_consulting":False,
 				"first_name":None,
 				"last_name":None,

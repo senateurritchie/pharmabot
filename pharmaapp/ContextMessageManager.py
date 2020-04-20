@@ -189,6 +189,7 @@ class ContextMessageManager(EventDispatcher):
 		self.last_survey_offset = 0
 		self.last_quizz_id = None
 		self.last_quizz_offset = 0
+		self.has_new_menu = False
 		self.survey_one_time_notif_token = None
 		self.quiz_one_time_notif_token = None
 
@@ -300,7 +301,7 @@ class ContextMessageManager(EventDispatcher):
 		data = {}
 		u_data = {}
 
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset"]
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset","has_new_menu"]
 
 		if payload is None:
 			for key in dir(self):
