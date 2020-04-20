@@ -724,6 +724,8 @@ class ContextMessageManager(EventDispatcher):
 					"is_closed":False
 				}).sort("_id",-1).limit(5)
 
+				quizzs = [i for i in quizzs]
+
 				if len(quizzs) == 0:
 
 					text:str = "Je n'ai pas de quizz pour l'heure, veux-tu être informé dès disponibilité ?"
@@ -1033,6 +1035,10 @@ class ContextMessageManager(EventDispatcher):
 					"is_active":True,
 					"is_closed":False
 				}).sort("_id",-1).limit(5)
+
+
+				surveys = [i for i in surveys]
+
 
 				if len(surveys) == 0:
 
