@@ -1378,7 +1378,7 @@ class ContextMessageManager(EventDispatcher):
 							    {
 							    	"title": "Zacharie A. Assagou",
 							  		"subtitle":"Développeur & Founder",
-							  		"image_url":"http://160.120.150.85:5000/static/founder.jpg",
+							  		"image_url":"https://cipharmabot.herokuapp.com/static/founder.jpg",
 							    	"buttons":[
 							    		{
 								            "type":"web_url",
@@ -2550,7 +2550,7 @@ class ContextMessageManager(EventDispatcher):
 							    {
 							    	"title": "Pharma Garde",
 							  		"subtitle":"Chatbot qui t'aide à trouver une pharmacie de garde dans la localité de ton choix",
-							  		"image_url":"http://160.120.150.85:5000/static/logo-512x512.png",
+							  		"image_url":"https://cipharmabot.herokuapp.com/static/logo-512x512.png",
 							    	"buttons":[
 							    		{
 								            "type":"web_url",
