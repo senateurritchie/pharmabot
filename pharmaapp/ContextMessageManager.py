@@ -2941,7 +2941,7 @@ class ContextMessageManager(EventDispatcher):
 		"""
 		garde_period = db.garde_period.find_one({"is_active":True})
 		db.garde_period_view.insert_one({
-			"_id":garde_period["_id"],
+			"garde_period_id":garde_period["_id"],
 			"user_id":self._user._id,
 			"create_at":datetime.datetime.utcnow()
 		})
