@@ -133,21 +133,27 @@ class FBSend:
           					]
 		                },
 		                {
-		                	"title":"📢 Abonnements",
-          					"type":"nested",
-          					"call_to_actions":[
-          						{
-				                    "type": "postback",
-				                    "title": "📍 Localités ",
-				                    "payload": "MY_LOCALITIES_SUBSCRIPTION"
-				                },
-				                {
-				                    "type": "postback",
-				                    "title": "🏫 Pharmacies",
-				                    "payload": "MY_PHARMACIES_SUBSCRIPTION"
-				                }
-          					]
+		                    "type": "postback",
+		                	"title":"🇨🇮 Covid19 Stats",
+							"payload":"COVID19_STATS"
 		                },
+
+		             #    {
+		             #    	"title":"📢 Abonnements",
+          					# "type":"nested",
+          					# "call_to_actions":[
+          					# 	{
+				           #          "type": "postback",
+				           #          "title": "📍 Localités ",
+				           #          "payload": "MY_LOCALITIES_SUBSCRIPTION"
+				           #      },
+				           #      {
+				           #          "type": "postback",
+				           #          "title": "🏫 Pharmacies",
+				           #          "payload": "MY_PHARMACIES_SUBSCRIPTION"
+				           #      }
+          					# ]
+		             #    },
 		                {
 		                    "type": "postback",
 		                    "title": "💓 Partager",
