@@ -506,6 +506,8 @@ class ContextMessageManager(EventDispatcher):
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
+				result = self.load_covid19_stats(ivory_url);
+
 				resp:dict = {
 					"text":"En Côte d'Ivoire nous avons environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
 				}
