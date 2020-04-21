@@ -143,7 +143,7 @@ def garde_periods():
 	data = db.garde_period.aggregate([
 		
 		{"$sort":{"_id":-1}},
-		# {"$limit":50},
+		{"$limit":50},
 		# {
 		# 	"$lookup":{
 		# 		"from":"admin",
@@ -154,30 +154,30 @@ def garde_periods():
 		# },
 		# {"$addFields":{"author":{"$arrayElemAt":["$author",0]}}},
 
-		{
-			"$lookup":{
-				"from":"garde_period_views",
-				"let":{"garde_period_id":"$_id"},
-				"pipeline":[
-					{ 
-						"$match":{
-							"$expr":{
-	                         	"$eq": [ "$_id",  "$$_id" ]
-	                    	}
-	                 	}
-	              	},
-	              	{
-                 		"$group":{
-                 			"_id":None,
-                 			"total":{"$sum":1}
-                 		}
-	                },
-	                {"$project":{"_id":0}}
-				],
-				"as":"views"
-			}
-		},
-		{"$addFields":{"views":{"$arrayElemAt":["$views",0]}}}
+		# {
+		# 	"$lookup":{
+		# 		"from":"garde_period_views",
+		# 		"let":{"garde_period_id":"$_id"},
+		# 		"pipeline":[
+		# 			{ 
+		# 				"$match":{
+		# 					"$expr":{
+	 #                         	"$eq": [ "$_id",  "$$_id" ]
+	 #                    	}
+	 #                 	}
+	 #              	},
+	 #              	{
+  #                		"$group":{
+  #                			"_id":None,
+  #                			"total":{"$sum":1}
+  #                		}
+	 #                },
+	 #                {"$project":{"_id":0}}
+		# 		],
+		# 		"as":"views"
+		# 	}
+		# },
+		# {"$addFields":{"views":{"$arrayElemAt":["$views",0]}}}
 	])
 
 	data = [i for i in data]
