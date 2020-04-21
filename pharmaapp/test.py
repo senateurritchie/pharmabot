@@ -1,5 +1,49 @@
 #!/usr/bin/python3.7
 # -*- coding:utf-8 -*-
+# 
+# 
+
+from bs4 import BeautifulSoup
+from bs4.element import NavigableString
+
+import requests
+import re
+import datetime
+
+global_url = "https://www.worldometers.info/coronavirus/"
+ivory_url = "https://www.worldometers.info/coronavirus/country/cote-d-ivoire/"
+
+def load_covid19_stats(url):
+	result = {"cases":0,"deaths":0,"recovered":0}
+	r = requests.get(url)
+	if r.status_code == 200:
+		html = str(r.text)
+
+		html = BeautifulSoup(html,"lxml")
+		container = html.find_all(id="maincounter-wrap")
+
+		for i,el in enumerate(container):
+			h1 = el.find("h1")
+			counter = el.select(".maincounter-number span")[0]
+			if i == 0:
+				key = "cases"
+			elif i == 1:
+				key = "deaths"
+			elif i == 2:
+				key = "recovered"
+
+			result[key] = counter.string.replace(","," ")
+
+	return result
+
+
+print(load_covid19_stats(global_url))
+print(load_covid19_stats(ivory_url))
+
+
+
+
+
 
 
 # from bs4 import BeautifulSoup

@@ -13,6 +13,8 @@ import requests
 import pymongo
 from bson.objectid import ObjectId
 from slugify import slugify
+from bs4 import BeautifulSoup
+from bs4.element import NavigableString
 
 from .EventDispatcher import EventDispatcher
 from .FBSend import FBSend
@@ -482,6 +484,42 @@ class ContextMessageManager(EventDispatcher):
 					"insta":2
 				}
 				self.handle_quick_reply(m)
+				return True
+
+
+			elif payload == "COVID19_STATS":
+				"""
+				demande de statistiques sur le coronavirus
+				"""
+				global_url = "https://www.worldometers.info/coronavirus/"
+				ivory_url = "https://www.worldometers.info/coronavirus/country/cote-d-ivoire/"
+
+				resp:dict = {
+					"text":"{}, le coronavirus est actuellement une pandemie mondiale\r\nmerci de respecter les mesures barrières.".format(self._user.first_name),
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				result = self.load_covid19_stats(global_url);
+
+				resp:dict = {
+					"text":"Dans le monde Il y a environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				resp:dict = {
+					"text":"En Côte d'Ivoire nous avons environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
+				}
+				fbsend.sendMessage(self._user.psid,resp)
+
+				m = {
+					"nlp":{},
+					"quick_reply":{
+						"payload":"MAIN_MENU"
+					},
+					"insta":2
+				}
+				self.handle_quick_reply(m)
+
 				return True
 
 			elif payload == "OPTIN_QUIZZ_ALERT":
@@ -2418,6 +2456,13 @@ class ContextMessageManager(EventDispatcher):
 							"title":"Intérieur du pays",
 							"payload":"ASK_ZONE_2"
 						},
+						
+						{
+							"content_type":"text",
+							"title":"🇨🇮 Covid19 Stats",
+							"payload":"COVID19_STATS"
+						},
+
 						{
 							"content_type":"text",
 							"title":"📊 Sondages",
@@ -2934,6 +2979,31 @@ class ContextMessageManager(EventDispatcher):
 					break
 
 		return isSubscribed
+
+
+	def load_covid19_stats(self,url):
+
+		result = {"cases":0,"deaths":0,"recovered":0}
+		r = requests.get(url)
+		if r.status_code == 200:
+			html = str(r.text)
+
+			html = BeautifulSoup(html,"lxml")
+			container = html.find_all(id="maincounter-wrap")
+
+			for i,el in enumerate(container):
+				h1 = el.find("h1")
+				counter = el.select(".maincounter-number span")[0]
+				if i == 0:
+					key = "cases"
+				elif i == 1:
+					key = "deaths"
+				elif i == 2:
+					key = "recovered"
+
+				result[key] = counter.string.replace(","," ")
+
+		return result
 
 	def saveGardePeriodView(self):
 		"""
