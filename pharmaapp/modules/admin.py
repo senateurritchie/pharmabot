@@ -157,12 +157,12 @@ def garde_periods():
 		{
 			"$lookup":{
 				"from":"garde_period_view",
-				"let":{"garde_period_id":"$_id"},
+				"let":{"_id":"$garde_period_id"},
 				"pipeline":[
 					{ 
 						"$match":{
 							"$expr":{
-	                         	"$eq": [ "$_id",  "$$_id" ]
+	                         	"$eq": [ "$garde_period_id",  "$$garde_period_id" ]
 	                    	}
 	                 	}
 	              	},
