@@ -144,20 +144,10 @@ def garde_periods():
 		
 		{"$sort":{"_id":-1}},
 		{"$limit":50},
-		# {
-		# 	"$lookup":{
-		# 		"from":"admin",
-		# 		"localField":"create_by",
-		# 		"foreignField":"_id",
-		# 		"as":"author"
-		# 	}
-		# },
-		# {"$addFields":{"author":{"$arrayElemAt":["$author",0]}}},
-
 		{
 			"$lookup":{
 				"from":"garde_period_view",
-				"let":{"_id":"$period_id"},
+				"let":{"period_id":"$_id"},
 				"pipeline":[
 					{ 
 						"$match":{
