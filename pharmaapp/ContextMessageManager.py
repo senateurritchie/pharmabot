@@ -581,7 +581,7 @@ class ContextMessageManager(EventDispatcher):
 				return True
 
 
-			elif payload == "QUIZ_STARTED": 
+			elif payload == "QUIZZ_STARTED": 
 				"""
 				demarrage d'un quizz
 				"""
