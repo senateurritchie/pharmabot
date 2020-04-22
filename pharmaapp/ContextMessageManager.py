@@ -2148,7 +2148,7 @@ class ContextMessageManager(EventDispatcher):
 				l'utilisateur dit vouloir etre informé du prochain tour de garde
 				"""
 				m = [
-					'{}, cliques sur <me prévenir> pour être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title())
+					'Cliques sur <me prévenir> pour être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title())
 				]
 
 				resp:dict = {
