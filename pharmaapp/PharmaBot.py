@@ -295,9 +295,8 @@ class PharmaBot(AbstractBot):
 			"COVID19_STATS"
 		]
 
+		#ON AJOUTE
 
-
-		
 
 		if received_referral["ref"] not in referrals:
 			return
