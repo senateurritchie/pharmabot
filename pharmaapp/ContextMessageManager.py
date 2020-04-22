@@ -471,16 +471,16 @@ class ContextMessageManager(EventDispatcher):
 				demande de statistiques sur le coronavirus
 				"""
 
-				opts = db.options.find_one({})
-				cache_data = None
+				opts = db.options.find_one({"name":"covid19"})
+				in_cache = False
 				result = None
 
-				if opts["covid19"]["last_request_time"] is not None:
-					delta = datetime.datetime.utcnow() - opts["covid19"]["last_request_time"]
+				if opts["last_request_time"] is not None:
+					delta = datetime.datetime.utcnow() - opts["last_request_time"]
 					if delta.seconds//60 < 10:
-						cache_data = opts["covid19"]
+						in_cache = True
 
-						
+
 						print('...........on charge depuis le cache....................')
 						
 
@@ -492,11 +492,12 @@ class ContextMessageManager(EventDispatcher):
 					"text":"{}, le coronavirus est actuellement une pandemie mondiale\r\nmerci de respecter les mesures barrières.".format(self._user.first_name),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
-				if cache_data is not None:
-					result = opts["covid19"]["global_data"]
+				
+				if in_cache:
+					result = opts["global_data"]
 				else:
 					result = self.load_covid19_stats(global_url);
-					opts["covid19"]["global_data"] = result
+					opts["global_data"] = result
 
 
 
@@ -505,20 +506,28 @@ class ContextMessageManager(EventDispatcher):
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
-				if cache_data is not None:
-					result = opts["covid19"]["ivory_data"]
+				if in_cache:
+					result = opts["ivory_data"]
 				else:
 					result = self.load_covid19_stats(ivory_url);
-					opts["covid19"]["ivory_data"] = result
+					opts["ivory_data"] = result
 
 				resp:dict = {
 					"text":"En Côte d'Ivoire nous avons environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
-				if cache_data is not None:
-					opts["covid19"]["last_request_time"] = datetime.datetime.utcnow()
-					db.options.update_one({'_id':opts["_id"]},{"$set":{"covid19":opts["covid19"]}})
+				if in_cache:
+					opts["last_request_time"] = datetime.datetime.utcnow()
+					db.options.update_one({
+						'_id':opts["_id"]
+					},{
+						"$set":{
+							"last_request_time":opts["last_request_time"],
+							"global_data":opts["global_data"],
+							"ivory_data":opts["ivory_data"],
+						}
+					})
 
 				self.save({
 					"question_processing":None,
