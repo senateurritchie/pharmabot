@@ -479,6 +479,8 @@ class ContextMessageManager(EventDispatcher):
 					delta = datetime.datetime.utcnow() - opts["covid19"]["last_request_time"]
 					if delta.seconds//60 < 10:
 						cache_data = opts["covid19"]
+
+						
 						print('...........on charge depuis le cache....................')
 						
 
