@@ -491,11 +491,10 @@ class ContextMessageManager(EventDispatcher):
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 				if cache_data is not None:
-					result = cache_data["global_data"]
+					result = opts["covid19"]["global_data"]
 				else:
 					result = self.load_covid19_stats(global_url);
-					cache_data = opts["covid19"]
-					cache_data["global_data"] = result
+					opts["covid19"]["global_data"] = result
 
 
 
@@ -505,10 +504,10 @@ class ContextMessageManager(EventDispatcher):
 				fbsend.sendMessage(self._user.psid,resp)
 
 				if cache_data is not None:
-					result = cache_data["ivory_data"]
+					result = opts["covid19"]["ivory_data"]
 				else:
 					result = self.load_covid19_stats(ivory_url);
-					cache_data["ivory_data"] = result
+					opts["covid19"]["ivory_data"] = result
 
 				resp:dict = {
 					"text":"En Côte d'Ivoire nous avons environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
@@ -516,8 +515,8 @@ class ContextMessageManager(EventDispatcher):
 				fbsend.sendMessage(self._user.psid,resp)
 
 				if cache_data is not None:
-					cache_data["last_request_time"] = datetime.datetime.utcnow()
-					db.options.update_one({'_id':opts["_id"]},{"$set":{"covid19":cache_data}})
+					opts["covid19"]["last_request_time"] = datetime.datetime.utcnow()
+					db.options.update_one({'_id':opts["_id"]},{"$set":{"covid19":opts["covid19"]}})
 
 				self.save({
 					"question_processing":None,
