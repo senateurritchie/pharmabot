@@ -286,15 +286,6 @@ class ContextMessageManager(EventDispatcher):
 				self._id = _id
 
 
-	def saveUserActivity(self,action:str=None):
-		db.user_activity.insert_one(
-			{
-				"user_id":self._user._id,
-				"action":action,
-				"create_at":datetime.datetime.utcnow()
-			}
-		)
-
 
 	def save(self,payload=None):
 		"""
@@ -359,16 +350,6 @@ class ContextMessageManager(EventDispatcher):
 			{"$set":{"last_presence":datetime.datetime.today()}}
 		)
 
-	def removeAllRequired(self):
-		"""
-		mettre a jour les metadonnées d'un message
-		"""
-
-		db.message.update_one(
-			{"conversation_id":self._id},
-			{"$set":{"required":False,"answered":True}}
-		)
-
 
 	def updateItem(self,contextCode:ContextCode,payload):
 		"""
@@ -429,9 +410,7 @@ class ContextMessageManager(EventDispatcher):
 
 
 			if "entities" not in message["nlp"]:
-				message["nlp"]["entities"] = {}
-
-			self.saveUserActivity(payload)
+				message["nlp"]["entities"] = {}  
 
 			if payload == "GET_STARTED":
 				fbsend.setPersitantMenu(self._user.psid)
@@ -442,10 +421,7 @@ class ContextMessageManager(EventDispatcher):
 					"Hello {},\r\nMon nom est Pharmabot 😎".format(self._user.first_name),
 				]
 				resp:dict = {"text":random.choice(m)}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
-
 
 				m = [
 					"Je t'aide à trouver une pharmacie de garde dans la localité de ton choix 🤗",
@@ -471,10 +447,11 @@ class ContextMessageManager(EventDispatcher):
 					}
 				}
 
-
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None,
+				})
 
 				m = {
 					"nlp":{},
@@ -513,6 +490,10 @@ class ContextMessageManager(EventDispatcher):
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
+				self.save({
+					"question_processing":None,
+				})
+
 				m = {
 					"nlp":{},
 					"quick_reply":{
@@ -541,6 +522,10 @@ class ContextMessageManager(EventDispatcher):
 					"text":"Félicitation, vous serez maintenant informé pour le prochain quizz",
 				}
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None,
+				})
 
 				m = {
 					"nlp":{},
@@ -608,6 +593,16 @@ class ContextMessageManager(EventDispatcher):
 							fbsend.sendMessage(self._user.psid,resp)
 
 							break
+				else:
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
+					
 
 				return True
 
@@ -626,8 +621,6 @@ class ContextMessageManager(EventDispatcher):
 					choice_id = ObjectId(r.group(1))
 					question = quizz["questions"][self._user.last_quizz_offset]
 					new_offset = self._user.last_quizz_offset + 1
-
-					print(new_offset,len(quizz["questions"]))
 
 					if new_offset >= len(quizz["questions"]):
 						"""
@@ -650,7 +643,7 @@ class ContextMessageManager(EventDispatcher):
 						      }
 						    }
 						}
-						print(fbsend.sendMessage(self._user.psid,resp).json())
+						fbsend.sendMessage(self._user.psid,resp)
 						self.save({
 							"question_processing":None,
 						})
@@ -700,6 +693,20 @@ class ContextMessageManager(EventDispatcher):
 						message["insta"] = 2
 						return self.handle_quick_reply(message)
 
+				else:
+					"""
+					si ne quizz n'existe plus ou pas il faut revenir
+					au menu principal
+					"""
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
+
 
 				return True
 
@@ -744,6 +751,20 @@ class ContextMessageManager(EventDispatcher):
 					message["quick_reply"]["payload"] = "QUIZZ_STARTED"
 					message["insta"] = 2
 					return self.handle_quick_reply(message)
+
+				else:
+					"""
+					si ne quizz n'existe plus ou pas il faut revenir
+					au menu principal
+					"""
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
 
 				return True
 
@@ -921,6 +942,16 @@ class ContextMessageManager(EventDispatcher):
 
 							break
 
+				else:
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
+
 				return True
 
 			elif payload.startswith("SURVEY_RESPONSE_"):
@@ -1012,6 +1043,16 @@ class ContextMessageManager(EventDispatcher):
 						message["insta"] = 2
 						return self.handle_quick_reply(message)
 
+				else:
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
+
 
 				return True
 
@@ -1056,6 +1097,16 @@ class ContextMessageManager(EventDispatcher):
 					message["quick_reply"]["payload"] = "SURVEY_STARTED"
 					message["insta"] = 2
 					return self.handle_quick_reply(message)
+
+				else:
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"MAIN_MENU"
+						},
+						"insta":2
+					}
+					self.handle_quick_reply(m)
 
 				return True
 
@@ -1150,6 +1201,7 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				req = Consultation(self._user._id)
 				req.run()
+
 				return True
 
 			elif payload.startswith("CONSULTATION_REFUSED_"):
@@ -1245,42 +1297,32 @@ class ContextMessageManager(EventDispatcher):
 
 				]
 				resp:dict = {"text":random.choice(m)}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text = 'Dans un premier temps\r\nTu devras m\'aider à me souvenir de 2 élements tres important:\r\n\r\n1.Ta zone soit "Abidjan" ou "Intérieur du pays"\r\n2. Ta localité qui est une commune.'
 				
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text = 'Ces 2 élements te seront présentés dans une liste pour enregistrer ton choix.'
 				
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 
 				text = "A toute fin utile,\r\nTu peux t'abonner aux tours de gardes d'une localité pour recevoir à chaque période les pharmacies de garde de cette localité en message privée"
 				
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text = "Ayant le souci d'aider au mieux mes utilisateurs, je demande tres souvent aux personnes comme toi {} de me proposer la situation géographique precise d'une pharmacie consultée ici 😉".format(self._user.first_name)
 				
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
-				text = "J'espère n'avoir pas été trop ennuyant 🏃‍♂️"
-				
+				self.save({"question_processing":None})
 
+				text = "J'espère n'avoir pas été trop ennuyant 🏃‍♂️"
 				m = {
 					"nlp":{},
 					"quick_reply":{
@@ -1297,12 +1339,11 @@ class ContextMessageManager(EventDispatcher):
 
 				m = [
 					"Section en cours d'écriture 🧐"
-
 				]
 				resp:dict = {"text":random.choice(m)}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({"question_processing":None})
 
 				m = {
 					"nlp":{},
@@ -1318,8 +1359,6 @@ class ContextMessageManager(EventDispatcher):
 			elif payload == "ABOUT_US":
 				text:str = "Bienvenue {},\r\nJe suis ton assistant personnel de pharmacies de gardes.\r\nJe t'accompagne dans la recherche de pharmacies de gardes dans la localité de ton choix".format(self._user.first_name)
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text:str = "Que Souhaites-tu savoir {} ?".format(self._user.first_name)
@@ -1348,14 +1387,13 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Nouvelle Recherche 🔎",
+							"title":"Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+				self.save({"question_processing":"ABOUT_US"})
 				return True
 
 			elif payload == "ABOUT_US_WHY_PHARMABOT":
@@ -1397,12 +1435,13 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Nouvelle Recherche 🔎",
+							"title":"Menu principal 🔎",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
 				fbsend.sendMessage(self._user.psid,resp)
+				self.save({"question_processing":None})
 
 				return True
 
@@ -1431,8 +1470,6 @@ class ContextMessageManager(EventDispatcher):
 						}
 					}
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text:str = "Une autre question ?"
@@ -1451,14 +1488,14 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Nouvelle Recherche 🔎",
+							"title":"Menu principal 🔎",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+				self.save({"question_processing":None})
+
 
 				return True
 
@@ -1467,8 +1504,6 @@ class ContextMessageManager(EventDispatcher):
 				if "insta" not in message:
 					text:str = 'Ci-dessous une liste de questions fréquemment posées, clique sur "Voir réponse" si tu veux en savoir plus 😉'
 					resp:dict = {"text":text}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 				elements:list = [
@@ -1557,8 +1592,6 @@ class ContextMessageManager(EventDispatcher):
 						}
 					}
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 
@@ -1583,34 +1616,27 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Nouvelle Recherche 🔎",
+							"title":"Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+				self.save({"question_processing":None})
 
 				return True
 
 			elif payload == "ABOUT_US_CONTACT":
 				text:str = "{}, J'apprecirais recevoir ton retour d'experience, qu'il soit bon ou mauvais.\r\nCela m'aide tous les jours à me développer 💓".format(self._user.first_name)
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text:str = "Si jamais tu veux contacter l'équipe derrière ma conception, il sont vraiment ouvert 😉"
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text:str = "N'hésite surtout pas à nous envoyer un mail à cipharmabot@gmail.com"
 				resp:dict = {"text":text}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				text:str = "Une autre question ?"
@@ -1634,42 +1660,24 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"Nouvelle Recherche 🔎",
+							"title":"Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+				self.save({"question_processing":None})
 
-				return True
-
-
-			elif payload in ["START_QUIZ_SANTE","START_QUIZ_BIEN_ETRE"]:
-				text:str = "{}, nos quiz sont en cours d'élaboration 😜 A tres bientôt 💪".format(self._user.first_name)
-				resp:dict = {
-					"text":text,
-					"quick_replies":[
-					
-						{
-							"content_type":"text",
-							"title":"🔎 Nouvelle recherche",
-							"payload":"MAIN_MENU"
-						}
-					]
-				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
 				return True
 
 			elif payload == "MY_LOCALITIES_SUBSCRIPTION":
+				"""
+				on affiche les localités auquelles l'utilisateur a souscrite
+				"""
 				sub_loc = 0
 
 				if self._user.preferred_localities:
 					sub_loc = len(self._user.preferred_localities)
-
 
 				text:str = ""
 
@@ -1690,13 +1698,11 @@ class ContextMessageManager(EventDispatcher):
 					resp["quick_replies"] = [
 						{
 							"content_type":"text",
-							"title":"🔎 Nouvelle recherche",
+							"title":"🔎 Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				if sub_loc:
@@ -1715,14 +1721,15 @@ class ContextMessageManager(EventDispatcher):
 							}
 						]
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
-							
 
+				self.save({"question_processing":None})
 				return True
 
 			elif payload == "MY_PHARMACIES_SUBSCRIPTION":
+				"""
+				on affiche les pharmacies auquelles l'utilisateur à souscrite
+				"""
 
 				sub_loc = 0
 				if self._user.preferred_pharmacies:
@@ -1747,13 +1754,11 @@ class ContextMessageManager(EventDispatcher):
 					resp["quick_replies"] = [
 						{
 							"content_type":"text",
-							"title":"🔎 Nouvelle recherche",
+							"title":"🔎 Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 					
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
 				if sub_loc:
@@ -1766,8 +1771,6 @@ class ContextMessageManager(EventDispatcher):
 								"text":text,
 							}
 
-							ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-							self.addItem(ctx)
 							fbsend.sendMessage(self._user.psid,resp)
 
 					resp:dict = {
@@ -1781,18 +1784,17 @@ class ContextMessageManager(EventDispatcher):
 						]
 					}
 
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
-					
 
-					
+				self.save({"question_processing":None})	
 				return True
 
 
 			elif payload == "SHOW_LOCALITIES":
 				intent.append({"confidence":1,"value":"getServiceLocations"})
+				self.save({"question_processing":None})
+
 
 			elif payload == "ASK_ZONE_1":
 				intent.append({"confidence":1,"value":"getServiceLocations"})
@@ -1801,7 +1803,11 @@ class ContextMessageManager(EventDispatcher):
 				self._user.currentZone = 1
 				self.currentLocation = None
 				self._user.currentLocation = None
-				self.save({"currentZone":1,"currentLocation":None})
+				self.save({
+					"currentZone":1,
+					"currentLocation":None,
+					"question_processing":None
+				})
 
 			elif payload == "ASK_ZONE_2":
 				intent.append({"confidence":1,"value":"getServiceLocations"})
@@ -1810,7 +1816,11 @@ class ContextMessageManager(EventDispatcher):
 				self._user.currentZone = 2
 				self.currentLocation = None
 				self._user.currentLocation = None
-				self.save({"currentZone":2,"currentLocation":None})
+				self.save({
+					"currentZone":2,
+					"currentLocation":None,
+					"question_processing":None
+				})
 
 			elif payload == "SELECT_MY_LOCALITY":
 
@@ -1832,9 +1842,11 @@ class ContextMessageManager(EventDispatcher):
 				resp:dict = {
 					"text":random.choice(m)
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None
+				})
 
 			elif payload == "ASK_PHARMACY_DETAILS":
 				text = "Veux-tu maintenant afficher la situation géographique de l'une de ces pharmacies ?"
@@ -1842,28 +1854,6 @@ class ContextMessageManager(EventDispatcher):
 				if "insta" in message and message["insta"] == 2:
 					text = "Veux-tu afficher la situation géographique de l'une de ces pharmacies ?"
 		
-
-				# resp:dict = {
-				# 	"text":text,
-				# 	"quick_replies":[
-				# 		{
-				# 			"content_type":"text",
-				# 			"title":"✔ Oui",
-				# 			"payload":"SHOW_PHCIE_LOC"
-				# 		},
-				# 		{
-				# 			"content_type":"text",
-				# 			"title":"🔎 Nouvelle recherche",
-				# 			"payload":"MAIN_MENU"
-				# 		},
-				# 		{
-				# 			"content_type":"text",
-				# 			"title":"📢 Partager",
-				# 			"payload":"SHARE_BOT"
-				# 		}
-				# 	]
-				# }
-
 				resp:dict = {
 					"text":text,
 					"quick_replies":[
@@ -1877,16 +1867,19 @@ class ContextMessageManager(EventDispatcher):
 							"title":"✖ Non",
 							"payload":"ASK_PHARMACY_DETAILS_REFUSE"
 						},
-						{
-							"content_type":"text",
-							"title":"🏅 Note moi !",
-							"payload":"RATE_CHATBOT"
-						}
+						# {
+						# 	"content_type":"text",
+						# 	"title":"🏅 Note moi !",
+						# 	"payload":"RATE_CHATBOT"
+						# }
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_PHARMACY_DETAILS,answered=False)
-				self.addItem(ctx)
+
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"ASK_PHARMACY_DETAILS",
+				})
 
 				return True
 
@@ -1907,15 +1900,18 @@ class ContextMessageManager(EventDispatcher):
 						},
 						{
 							"content_type":"text",
-							"title":"🔎 Nouvelle Recherche",
+							"title":"🔎 Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
 
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None,
+				})
+
 				return True
 
 			elif payload == "RATE_CHATBOT":
@@ -1932,9 +1928,9 @@ class ContextMessageManager(EventDispatcher):
 						"text":random.choice(m)
 					}
 
-					ctx = ContextMessage(message=resp,code=ContextCode.ASK_PHARMACY,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
+
+					
 
 				m = [
 					"Sur 5 points combien pourrais-tu m'attribuer ?",
@@ -1979,9 +1975,11 @@ class ContextMessageManager(EventDispatcher):
 					"quick_replies":replies
 				}
 
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_PHARMACY,answered=False,required=False)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"RATE_CHATBOT",
+				})
 
 				return True
 
@@ -2001,8 +1999,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":"Je suis enjaillé 😍"
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 					resp:dict = {
@@ -2020,8 +2016,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":"Je suis mal enjaillé 😍"
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 					resp:dict = {
@@ -2039,8 +2033,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":"Tchieuux tu n'as pas sciencé pour moi hein 😭"
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 					resp:dict = {
@@ -2056,8 +2048,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":"pas grave je vais bosser dur et m'ameliorer 😜 💪"
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 				if origin_paylaod.startswith("_") and origin_paylaod.endswith("_"):
@@ -2065,8 +2055,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":"Merci {}".format(self._user.first_name),
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 					m = {
@@ -2088,14 +2076,15 @@ class ContextMessageManager(EventDispatcher):
 							},
 							{
 								"content_type":"text",
-								"title":"🔎 Nouvelle Recherche",
+								"title":"🔎 Menu principal",
 								"payload":"MAIN_MENU"
 							}
 						]
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
+					self.save({
+						"question_processing":None,
+					})
 
 				rate = int(payload[-1])
 				self.save({"rate":rate})
@@ -2103,6 +2092,10 @@ class ContextMessageManager(EventDispatcher):
 
 				return True
 			elif payload == "SHOW_PHCIE_LOC":
+				"""
+				l'utilisateur dit vouloir afficher la situation géographique d'une 
+				pharmacie
+				"""
 				m = [
 					"Selectionne la pharmacie dans la liste proposée ci-dessous stp 🚶‍♂️",
 					"Indique moi la pharmacie dans la liste proposée ci-dessous stp 🚶‍♂️",
@@ -2137,30 +2130,24 @@ class ContextMessageManager(EventDispatcher):
 							"payload":"SELECT_PHCIE_"+self._user.currentPharmacie
 						}) 
 
-					# for i,item in enumerate(self.oldDataSearch["data"]):
-					# 	if i > 13:
-					# 		break
-
-					# 	name = item["name"]
-					# 	if "(" in name:
-					# 		name = name[:name.index("(")].strip()
-						
-					# 	resp["quick_replies"].append({
-					# 		"content_type":"text",
-					# 		"title":"📍 "+name.replace("Pharmacie","Phcie"),
-					# 		"payload":"SELECT_PHCIE_"+name
-					# 	})
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_PHARMACY,answered=False,required=True)
-				self.addItem(ctx)
+					
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"SHOW_PHCIE_LOC",
+				})
+
 				return True
 
 
 
 			elif payload == "LOCALITY_ALERT_SUBSCRIPTION":
+				"""
+				l'utilisateur dit vouloir etre informé du prochain tour de garde
+				"""
 				m = [
-					'Souhaites-tu être informé regulièrement des tours de garde {} 😁 ?'.format(self._user.currentLocation.title()),
-					"Tu sais je peux aussi t'informer regulièrement des tours de garde {}\r\nCela t'intéresse 😁 ?".format(self._user.currentLocation.title()),
+					'Souhaites-tu être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title()),
+					"Tu sais je peux aussi te notifier pour le prochain tour de garde {}\r\nCela t'intéresse 😁 ?".format(self._user.currentLocation.title()),
 				]
 
 				resp:dict = {
@@ -2179,11 +2166,12 @@ class ContextMessageManager(EventDispatcher):
 					]
 				}
 
-
-
-				ctx = ContextMessage(message=resp,code=ContextCode.LOCALITY_ALERT_SUBSCRIPTION,answered=False,required=True)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"LOCALITY_ALERT_SUBSCRIPTION",
+				})
+
 				return True
 
 			elif payload == "PHARMACY_ALERT_SUBSCRIPTION":
@@ -2209,9 +2197,12 @@ class ContextMessageManager(EventDispatcher):
 						]
 				}
 
-				ctx = ContextMessage(message=resp,code=ContextCode.PHARMACY_ALERT_SUBSCRIPTION,answered=False,required=True)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"PHARMACY_ALERT_SUBSCRIPTION",
+				})
+
 				return True
 
 			elif payload == "PHARMACY_ALERT_SUBSCRIPTION_ACCEPT":
@@ -2261,12 +2252,11 @@ class ContextMessageManager(EventDispatcher):
 				resp:dict = {
 					"text":random.choice(m),
 				}
-
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
 
-
+				self.save({
+					"question_processing":None
+				})
 
 				m = {
 					"nlp":{},
@@ -2284,6 +2274,11 @@ class ContextMessageManager(EventDispatcher):
 				# l'utilisateur a refusé
 				# on continue la converstion pour lui demander
 				# si il veut afficher une autre pharmacie
+				# 
+				
+				self.save({
+					"question_processing":None
+				})
 
 				m = {
 					"nlp":{},
@@ -2346,9 +2341,11 @@ class ContextMessageManager(EventDispatcher):
 					"text":random.choice(m),
 				}
 
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None,
+				})
 
 				m = {
 					"nlp":{},
@@ -2357,67 +2354,15 @@ class ContextMessageManager(EventDispatcher):
 					},
 					"insta":2
 				}
+
+
 				return self.handle_quick_reply(m)
-
-
-			elif payload == "SUGGEST_PHARMACY_LOC_TO_BOT":
-				# lorsque l'utilisateur accepte de nous suggerer
-				# la situation géographique d'une pharmacie qui n'en a pas
-				m = [
-					"Très bien 🧐",
-					"c'est superrrr 🧐",
-					"Ohhhh c'est vraiment gentil 😍"
-				]
-				resp:dict = {
-					"text":random.choice(m),
-				}
-
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=True)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
-
-				m = [
-					"Merci de saisir la situation géographique de la {} 😜".format(self._user.currentPharmacie),
-					"Quelle est la situation géographique de la {} 😜".format(self._user.currentPharmacie),
-					"Dis moi est la situation géographique de la {} 😜".format(self._user.currentPharmacie),
-				]
-				resp:dict = {
-					"text":random.choice(m)
-				}
-
-				ctx = ContextMessage(message=resp,code=ContextCode.USER_PHARMACY_LOC_SUGGEST,answered=False,required=True)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
-				
-				return True
-			elif payload == "REFUSE_PHARMACY_LOC_TO_BOT":
-				# lorsque l'utilisateur refuse de nous suggerer
-				# la situation géographique d'une pharmacie qui n'en a pas
-
-				if self.check_if_user_subscribe_to_current_pharmacy_alert() == False:	
-					m = {
-						"nlp":{},
-						"quick_reply":{
-							"payload":"PHARMACY_ALERT_SUBSCRIPTION"
-						},
-					}
-					return self.handle_quick_reply(m)
-				else:
-					m = {
-						"nlp":{},
-						"quick_reply":{
-							"payload":"ASK_PHARMACY_DETAILS"
-						},
-						"insta":2
-					}
-					return self.handle_quick_reply(m)
 
 
 			elif payload == "MAIN_MENU": 
 				# le visiteur demande a revenir au menu principal
 				self._user.currentLocation = None
 				self.currentLocation = None
-				self.removeAllRequired()
 				self.save({"currentLocation":None})
 
 				if "insta" not in message:
@@ -2429,17 +2374,58 @@ class ContextMessageManager(EventDispatcher):
 					}
 					fbsend.sendMessage(self._user.psid,resp)
 
-				# un git du style merci
-				# resp:dict = {
-				# 	"attachment": {
-		  #           	"type": "image",
-		  #               "payload": {
-		  #                   "attachment_id": random.choice(GIPHY.THANKS),
-		  #               }
-				# 	}
-				# }
-				# fbsend.sendMessage(self._user.psid,resp)
 
+				m = [
+					"Merci de selectionner un element du menu",
+					"Selectionne le menu qui t'interesse",
+					"Indique le menu qui t'interesse stp"
+				]
+				resp:dict = {
+					"text":random.choice(m),
+					"quick_replies":[
+						{
+							"content_type":"text",
+							"title":"💉 Pharmacie de garde",
+							"payload":"GARDE_PHARMACY"
+						},
+						{
+							"content_type":"text",
+							"title":"🇨🇮 Covid19 Stats",
+							"payload":"COVID19_STATS"
+						},
+
+						{
+							"content_type":"text",
+							"title":"📊 Sondages",
+							"payload":"SURVEY_LIST"
+						},
+						{
+							"content_type":"text",
+							"title":"🏆 Quizz",
+							"payload":"QUIZZ_LIST"
+						}
+					]
+				}
+
+				if self._user.currentZone:
+					if self._user.currentZone == 1:
+						title = resp["quick_replies"][0]["title"]
+						resp["quick_replies"][0]["title"] = "📍 {}".format(title)
+					else:
+						title = resp["quick_replies"][1]["title"]
+						resp["quick_replies"][1]["title"] = "📍 {}".format(title)
+
+				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"MAIN_MENU",
+				})
+
+				return True
+
+			elif payload == "GARDE_PHARMACY": 
+				# activation du menu pharmacie de garde
+				
 				m = [
 					"Peux-tu selectionner la zone qui t'interesse",
 					"Peux-tu m'indiquer la zone de ton choix ?",
@@ -2458,28 +2444,11 @@ class ContextMessageManager(EventDispatcher):
 							"title":"Intérieur du pays",
 							"payload":"ASK_ZONE_2"
 						},
-						
 						{
 							"content_type":"text",
-							"title":"🇨🇮 Covid19 Stats",
-							"payload":"COVID19_STATS"
-						},
-
-						{
-							"content_type":"text",
-							"title":"📊 Sondages",
-							"payload":"SURVEY_LIST"
-						},
-						{
-							"content_type":"text",
-							"title":"🏆 Quizz",
-							"payload":"QUIZZ_LIST"
+							"title":"Comment ça marche ❓",
+							"payload":"HOW_IT_WORKS"
 						}
-						# {
-						# 	"content_type":"text",
-						# 	"title":"Comment ça marche ❓",
-						# 	"payload":"HOW_IT_WORKS"
-						# }
 					]
 				}
 
@@ -2491,30 +2460,16 @@ class ContextMessageManager(EventDispatcher):
 						title = resp["quick_replies"][1]["title"]
 						resp["quick_replies"][1]["title"] = "📍 {}".format(title)
 
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_ZONE,answered=False,required=True)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
 
+				self.save({
+					"question_processing":"GARDE_PHARMACY",
+				})
+
+				fbsend.sendMessage(self._user.psid,resp)
 				return True
 
 			elif payload == "NEW_SEARCH": 
 				# le visiteur demande une nouvelle recherche
-				self.removeAllRequired()
-
-				m = [
-					"Nouvelle recherche 🔎 ? et bien nous y sommes :)",
-					"Tu as choisi de faire une nouvelle recherche 🔎",
-					"Tu as decidé de faire une nouvelle recherche 🔎",
-					"C'est bien compris 😜",
-					"C'est bien noté 😜",
-					"d'accord 😜",
-				]
-				resp:dict = {
-					"text":random.choice(m)
-				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
 
 				if self.oldDataLocations:
 					# on envoi la liste preengistrée
@@ -2523,8 +2478,6 @@ class ContextMessageManager(EventDispatcher):
 					resp:dict = {
 						"text":text
 					}
-					ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
-					self.addItem(ctx)
 					fbsend.sendMessage(self._user.psid,resp)
 
 
@@ -2563,15 +2516,16 @@ class ContextMessageManager(EventDispatcher):
 						"payload":"SELECT_MY_LOCALITY"
 					})
 
-
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_LOCALITY,answered=False,required=True)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"NEW_SEARCH",
+				})
+
 				return True
 
 			elif payload == "SHARE_BOT": 
 				# le visiteur demande une nouvelle recherche
-				self.removeAllRequired()
 				m = [
 					"Quel honneur 😜 ! c'est genial ! 🔥🔥",
 					"C'est vraiment un honneur 💕",
@@ -2630,14 +2584,16 @@ class ContextMessageManager(EventDispatcher):
 					"quick_replies":[
 						{
 							"content_type":"text",
-							"title":"🔎 Nouvelle Recherche",
+							"title":"🔎 Menu principal",
 							"payload":"MAIN_MENU"
 						}
 					]
 				}
-				ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":None,
+				})
 
 				return True
 
@@ -2700,9 +2656,12 @@ class ContextMessageManager(EventDispatcher):
 						"payload":"SELECT_MY_LOCALITY"
 					}) 
 
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_LOCALITY,answered=False,required=True)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"SHOW_LOCALITIES",
+				})
+
 				return True
 
 			elif payload in ["NEXT_PHCIE","PREV_PHCIE"]:
@@ -2760,11 +2719,14 @@ class ContextMessageManager(EventDispatcher):
 						"content_type":"text",
 						"title":"📍 {}".format(self._user.currentPharmacie),
 						"payload":"SELECT_PHCIE_"+self._user.currentPharmacie
-					}) 
+					})
 
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_PHARMACY_DETAILS,answered=False,required=True)
-				self.addItem(ctx)
 				fbsend.sendMessage(self._user.psid,resp)
+
+				self.save({
+					"question_processing":"ASK_PHARMACY_DETAILS",
+				})
+
 				return True
 			
 			elif payload.startswith("VIEW_ALERT_"):
@@ -2774,6 +2736,10 @@ class ContextMessageManager(EventDispatcher):
 				intent.append({"confidence":1,"value":"getPharmaGarde"})
 				item = {"confidence":1,"value":locality}
 				message["nlp"]["entities"]["quartier"] = [item]
+
+				self.save({
+					"question_processing":None,
+				})
 				
 			else:
 				r = re.search(r"SELECT_PHCIE_(.+)",payload)
@@ -2790,6 +2756,10 @@ class ContextMessageManager(EventDispatcher):
 						"value":r.group(1)
 					}
 					message["nlp"]["entities"]["pharmaName"] = [item]
+
+					self.save({
+						"question_processing":None,
+					})
 				
 				else:
 					r = re.search(r"SELECT_LOCALITY_(.+)",payload)
@@ -2807,7 +2777,10 @@ class ContextMessageManager(EventDispatcher):
 
 						message["nlp"]["entities"]["Commune"] = [item]
 
-				
+						self.save({
+							"question_processing":None,
+						})
+
 			message["nlp"]["entities"]["intent"] = intent
 		else:
 			# on va gerer des messages qui se rapproche des quick_replies
@@ -2824,141 +2797,52 @@ class ContextMessageManager(EventDispatcher):
 
 			if intent["value"] == "refuse":
 				# lorsqu'un utilisateur ecrit juste "non"
-				# il faut cherche la question a laquelle se rapport
-				# cette reponse
-
-				messages = self.load_messages()
-
-				for c in messages:
-					if c["answered"] == False:
-
-						if c["code"] == ContextCode.ASK_PHARMACY_LOC_TO_USER.value:
-							c["answered"] = True
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							if self.check_if_user_subscribe_to_current_pharmacy_alert() == False:	
-								m = {
-									"nlp":{},
-									"quick_reply":{
-										"payload":"PHARMACY_ALERT_SUBSCRIPTION"
-									},
-								}
-								return self.handle_quick_reply(m)
-							else:
-								m = {
-									"nlp":{},
-									"quick_reply":{
-										"payload":"ASK_PHARMACY_DETAILS"
-									},
-									"insta":2
-								}
-								return self.handle_quick_reply(m)
-
-							break
-
-						elif c["code"] in [ContextCode.PHARMACY_ALERT_SUBSCRIPTION.value,ContextCode.LOCALITY_ALERT_SUBSCRIPTION.value]:
-							c["answered"] = True 
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							m = {
-								"nlp":{},
-								"quick_reply":{
-									"payload":"PHARMACY_ALERT_SUBSCRIPTION_REFUSE"
-								}
-							}
-							return self.handle_quick_reply(m)
-							break
-
-							
+				# il faut cherche la question a laquelle se rapport cette reponse  
+				
+				if self._user.question_processing in ["PHARMACY_ALERT_SUBSCRIPTION","LOCALITY_ALERT_SUBSCRIPTION"]:
+					
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"PHARMACY_ALERT_SUBSCRIPTION_REFUSE"
+						}
+					}
+					return self.handle_quick_reply(m)
 
 			elif intent["value"] == "accept":
 				# lorsqu'un utilisateur ecrit juste "oui"
 				# il faut cherche la question a laquelle se rapport
 				# cette reponse
+				# 
+				
 
+				if self._user.question_processing == "ASK_PHARMACY_DETAILS":
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"SHOW_PHCIE_LOC"
+						}
+					}
+					return self.handle_quick_reply(m)
 
+				elif self._user.question_processing == "PHARMACY_ALERT_SUBSCRIPTION":
 
-				messages = self.load_messages()
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"PHARMACY_ALERT_SUBSCRIPTION_ACCEPT"
+						}
+					}
+					return self.handle_quick_reply(m)
 
-				for c in messages:
-					if c["answered"] == False:
-
-
-						if c["code"] == ContextCode.ASK_PHARMACY_DETAILS.value:
-							c["answered"] = True
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							m = {
-								"nlp":{},
-								"quick_reply":{
-									"payload":"SHOW_PHCIE_LOC"
-								}
-							}
-							return self.handle_quick_reply(m)
-							break
-
-						elif c["code"] == ContextCode.ASK_PHARMACY_LOC_TO_USER.value:
-							c["answered"] = True
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							m = {
-								"nlp":{},
-								"quick_reply":{
-									"payload":"SUGGEST_PHARMACY_LOC_TO_BOT"
-								}
-							}
-							return self.handle_quick_reply(m)
-							break
-
-						elif c["code"] == ContextCode.PHARMACY_ALERT_SUBSCRIPTION.value:
-							c["answered"] = True
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							m = {
-								"nlp":{},
-								"quick_reply":{
-									"payload":"PHARMACY_ALERT_SUBSCRIPTION_ACCEPT"
-								}
-							}
-							return self.handle_quick_reply(m)
-							break
-
-						elif c["code"] == ContextCode.LOCALITY_ALERT_SUBSCRIPTION.value:
-							c["answered"] = True
-							db.message.update_one({
-								"_id":c["_id"]
-							},{
-								"$set":c
-							})
-
-							m = {
-								"nlp":{},
-								"quick_reply":{
-									"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
-								}
-							}
-							return self.handle_quick_reply(m)
-							break
+				elif self._user.question_processing == "LOCALITY_ALERT_SUBSCRIPTION":
+					m = {
+						"nlp":{},
+						"quick_reply":{
+							"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
+						}
+					}
+					return self.handle_quick_reply(m)
 
 							
 
@@ -3038,8 +2922,6 @@ class ContextMessageManager(EventDispatcher):
 		fbsend = FBSend()
 		processed = False
 
-		
-
 		# on verifie que le visiteur a deja renseigné
 		# sa zone
 		if self._user.currentZone is None:
@@ -3067,8 +2949,6 @@ class ContextMessageManager(EventDispatcher):
 				]
 			}
 
-			ctx = ContextMessage(message=resp,code=ContextCode.ASK_ZONE,answered=False,required=True)
-			self.addItem(ctx)
 			fbsend.sendMessage(self._user.psid,resp)
 			processed = True
 		
@@ -3128,277 +3008,8 @@ class ContextMessageManager(EventDispatcher):
 				})
 
 
-			ctx = ContextMessage(message=resp,code=ContextCode.ASK_LOCALITY,answered=False,required=True)
-			self.addItem(ctx)
 			fbsend.sendMessage(self._user.psid,resp)
 			processed = True
-
-		else:
-			# on verifie ensuite si n'a pas de question non encore repondu
-			unanswered_question = None
-			messages = self.load_messages()
-
-			for c in messages:
-				if c["required"] == True and c["answered"] == False:
-					cxt = ContextMessage()
-					cxt.hydrate(c)
-					unanswered_question = cxt
-					break
-
-
-			# si il n'ya pas de question latente
-			# proposer au visiteur de se familiariser avec le service
-			if unanswered_question is None:
-
-				m = [
-					"Selectionne ta zone de recherche stp 😉",
-					"Peux-tu selectionner ta zone de recherche stp 😉",
-				]
-
-				resp:dict = {
-					"text":random.choice(m),
-					"quick_replies":[
-						{
-							"content_type":"text",
-							"title":"📍 Abidjan",
-							"payload":"ASK_ZONE_1"
-						},
-						{
-							"content_type":"text",
-							"title":"📍 Intérieur du pays",
-							"payload":"ASK_ZONE_2"
-						}
-					]
-				}
-
-				ctx = ContextMessage(message=resp,code=ContextCode.ASK_ZONE,answered=False,required=True)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
-				processed = True
-			else:
-				# si il ya bien des questions latentes
-				# il faut simplement demander au visiteur
-				# de bien vouloir repondre
-
-				if unanswered_question.code == ContextCode.ASK_LOCALITY: 
-					m = [
-						"Alors, ",
-						"Mais dites moi svp",
-						"je veux savoir une chose"
-					]
-
-					resp = {
-						"text":random.choice(m)
-					}
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered = None,required = False)
-					self.addItem(ctx)
-					fbsend.sendMessage(self._user.psid,resp)
-
-					if self.oldDataLocations:
-						# on envoi la liste preengistrée
-						text = "\r\n".join(["▪ {}".format(i) for i in self.oldDataLocations])
-
-						resp:dict = {
-							"text":text
-						}
-						ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
-						self.addItem(ctx)
-						fbsend.sendMessage(self._user.psid,resp)
-
-					context_copy = unanswered_question()
-					m = [
-						"Dans quelle localité tu te trouve ?",
-						"Pour mieux te guider dis moi ta localité ?",
-						"J'aimerais bien savoir dans quelle localité tu es ",
-						"Puis-je savoir la localité qui t'interesse ?",
-						"c'est quoi ta localité ?"
-					]
-					context_copy.message["text"] = random.choice(m)
-
-					if self.oldDataLocations:
-						d = self.oldDataLocations[:10]
-						context_copy.message["quick_replies"] = [{"content_type":"text","title":i,"payload":"SELECT_LOCALITY_"+i} for i in d]
-
-						offset = len(d)
-						self.offsetDataLocations = offset
-						self.save({"offsetDataLocations":offset})
-
-						context_copy.message["quick_replies"].append({
-							"content_type":"text",
-							"title":"Suivant ➡",
-							"payload":"NEXT_LOCALITIES"
-						})
-
-
-					if self._user.currentLocation is not None:
-						if "quick_replies" not in context_copy.message:
-							context_copy.message["quick_replies"] = []
-
-						context_copy.message["quick_replies"].insert(0,{
-							"content_type":"text",
-							"title":"📍 {}".format(self._user.currentLocation),
-							"payload":"SELECT_MY_LOCALITY"
-						})
-
-
-					self.addItem(context_copy)
-					fbsend.sendMessage(self._user.psid,context_copy.message)
-					processed = True
-
-				# elif unanswered_question.code == ContextCode.ASK_ZONE: 
-				# 	m = [
-				# 		"Alors, ",
-				# 		"Mais dites moi svp",
-				# 		"je veux savoir une chose"
-				# 	]
-
-				# 	resp = {
-				# 		"text":random.choice(m)
-				# 	}
-				# 	ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered = None,required = False)
-				# 	self.addItem(ctx)
-				# 	fbsend.sendMessage(self._user.psid,resp)
-
-				# 	context_copy = unanswered_question()
-				# 	m = [
-				# 		"Dans quelle zone tu te trouve ?",
-				# 		"Pour mieux te guider dis moi ta zone ?",
-				# 		"J'aimerais bien savoir dans quelle zone tu es",
-				# 		"Puis-je savoir la zone qui t'interesse ?",
-				# 		"c'est quoi ta zone ?"
-				# 	]
-				# 	context_copy.message["text"] = random.choice(m)
-				# 	self.addItem(context_copy)
-				# 	fbsend.sendMessage(self._user.psid,context_copy.message)
-
-				elif unanswered_question.code == ContextCode.ASK_PHARMACY:
-					# suggestion d'afficher les pharmacies 
-					# pour plus de details
-					m = {
-						"nlp":{},
-						"quick_reply":{
-							"payload":"SHOW_PHCIE_LOC"
-						}
-					}
-					self.handle_quick_reply(m)
-					processed = True
-
-				elif unanswered_question.code == ContextCode.ASK_ZONE:
-					# suggestion d'afficher les pharmacies 
-					# pour plus de details
-					m = {
-						"nlp":{},
-						"quick_reply":{
-							"payload":"MAIN_MENU"
-						}
-					}
-					self.handle_quick_reply(m)
-					processed = True
-
-				elif unanswered_question.code == ContextCode.USER_PHARMACY_LOC_SUGGEST:
-					# demande a l'utilisateur de situer geographiquement
-					# une pharmacie
-
-					# on enregistre la situation geographie en base de données
-
-					locality_name = self._user.currentLocation.lower()
-					pharmacies = db.garde_pharmacy.aggregate([
-						{
-							"$lookup":{
-								"from":"locality",
-								"localField":"locality_id",
-								"foreignField":"_id",
-								"as":"locality"
-							}
-						},
-						{
-							"$match":{
-								"slug":slugify(self._user.currentPharmacie.strip()),
-								"locality.slug":slugify(locality_name.strip()),
-								"locality.zone":self._user.currentZone,
-							}
-						},
-						{
-							"$limit":1
-						},
-					])
-
-					pharmacies = [i for i in pharmacies]
-
-					if len(pharmacies):
-						pharmacy = pharmacies[0]
-						
-						if args is not None:
-							db.garde_pharmacy.update_one({
-								"_id":pharmacy["_id"],
-							},{
-								"$addToSet":{
-									"users_address":{
-										"user_id":self._user._id,
-										"text":args["text"],
-										"create_at":datetime.datetime.utcnow()
-									}
-								}
-							})
-
-					m = [
-					"Merci, j'ai bien noté 😅",
-					"Merci, tu m'as vraiment aidé 😅",
-					"Bien noté 😉 c'est ensemble que le service sera top, Anitché encore 😜",
-					]
-
-					resp:dict = {
-						"text":random.choice(m),
-					}
-
-					ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE,answered=False,required=False)
-					self.addItem(ctx)
-					fbsend.sendMessage(self._user.psid,resp)
-					processed = True
-
-
-					# il faut verifier que l'utilisateur n'est pas encore
-					# abonné aux alertes de cette pharmacie
-					# s'il n'est pas encore, lui proposer sinon, continuer le dialogue
-					# il faut demander a l'utilisateur
-					# on consentement pour etre informé des gardes 
-					# de cette pharmacie
-
-					if self.check_if_user_subscribe_to_current_pharmacy_alert() == False:	
-						m = {
-							"nlp":{},
-							"quick_reply":{
-								"payload":"PHARMACY_ALERT_SUBSCRIPTION"
-							},
-						}
-						return self.handle_quick_reply(m)
-					else:
-						m = {
-							"nlp":{},
-							"quick_reply":{
-								"payload":"ASK_PHARMACY_DETAILS"
-							},
-							"insta":2
-						}
-						return self.handle_quick_reply(m)
-
-
-				elif unanswered_question.code == ContextCode.PHARMACY_ALERT_SUBSCRIPTION:
-					# il faut demander a l'utilisateur
-					# on consentement pour etre informé des gardes 
-					# de cette pharmacie
-					m = {
-						"nlp":{},
-						"quick_reply":{
-							"payload":"PHARMACY_ALERT_SUBSCRIPTION"
-						},
-					}
-					processed = True
-					return self.handle_quick_reply(m)
-
-				elif unanswered_question.code == ContextCode.LOCALITIES_DISPLAY_SUGGEST:
-					# suggestion d'afficher les localités
-					processed = True
 
 		# if processed == False:
 		# 	self._user.currentZone = None

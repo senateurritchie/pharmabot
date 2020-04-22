@@ -15,7 +15,6 @@ class PharmaAnswerProcessing(AnswerProcessing):
 
 	def process(self,e,options:dict=None):
 
-		isFreeText = False
 
 		if "location" in e["entities"]:
 			e["entities"]['Commune'] = e["entities"]['location']
@@ -38,23 +37,13 @@ class PharmaAnswerProcessing(AnswerProcessing):
 			if "suggested" not in e["entities"]["Commune"][0]:
 				answer = PharmaGardeAnswer()
 				return answer.run(e,options)
-			else:
-				isFreeText = True
+			
 
 		elif "quartier" in e["entities"]:
 
 			if "suggested" not in e["entities"]["quartier"][0]:
 				answer = PharmaGardeAnswer()
 				return answer.run(e,options)
-			else:
-				isFreeText = True
-
-		if isFreeText == True:
-			sender_psid = options["sender_psid"]
-			manager = ContextMessageManager(user_id=sender_psid)
-			if manager.process(options) == True:
-				return True
-
-
+			
 		answer = DefaultAnswer()
 		return answer.run(e,options)

@@ -26,8 +26,10 @@ class DefaultAnswer(Answer):
 
 		text = random.choice(self.responses)
 		resp:dict = {"text":text}
-		ctx = ContextMessage(message=resp,code=ContextCode.NO_ANSWER)
-		manager.addItem(ctx)
 		self.fbsend.sendMessage(sender_psid,resp)
+
+		manager.save({
+			"question_processing":None,
+		})
 
 		manager.process()

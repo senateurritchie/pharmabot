@@ -22,7 +22,6 @@ class ServiceLocalityAnswer(Answer):
 	def process(self,e,options:dict=None) -> str:
 		sender_psid = options["sender_psid"]
 		manager = ContextMessageManager(user_id=sender_psid)
-		manager.saveUserActivity("SERVICE_LOCALITY_ANSWER")
 
 
 		intent = e["entities"]["intent"][0]
@@ -39,8 +38,6 @@ class ServiceLocalityAnswer(Answer):
 		resp:dict = {
 			"text":random.choice(m)
 		}
-		ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-		manager.addItem(ctx)
 		self.fbsend.sendMessage(sender_psid,resp)
 
 		# un git du style j'y travail en ce moment
@@ -53,8 +50,6 @@ class ServiceLocalityAnswer(Answer):
 			}
 		}
 		eeee = self.fbsend.sendMessage(sender_psid,resp)
-		time.sleep(random.choice([2,3,1]))
-
 		
 		ofm = OfficineUpdater()
 		opts = {}
@@ -81,8 +76,6 @@ class ServiceLocalityAnswer(Answer):
 			resp:dict = {
 				"text":text
 			}
-			ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-			manager.addItem(ctx)
 			self.fbsend.sendMessage(sender_psid,resp)
 
 			last = ""
@@ -91,48 +84,7 @@ class ServiceLocalityAnswer(Answer):
 			resp:dict = {
 				"text":text
 			}
-			ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
-			manager.addItem(ctx)
 			self.fbsend.sendMessage(sender_psid,resp)
-
-			# for i,loc in enumerate(data):
-
-			# 	text = text + "\r\n▪ {}".format(loc)
-
-			# 	if last != loc[0]:
-			# 		last = loc[0]
-
-			# 		if i > 0:
-			# 			print(last,i)
-			# 			resp:dict = {
-			# 				"text":text
-			# 			}
-			# 			ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
-			# 			manager.addItem(ctx)
-			# 			self.fbsend.sendMessage(sender_psid,resp)
-			# 			text = ""
-
-
-
-			# text = "euhh  la liste est un peu longue cette période 😨.\r\nTu as là, les localités que je couvre.\r\n🏇🏇🏇 même si tu ne le dis pas je sais que c'est trooop génial 😍😍"
-			# resp:dict = {
-			# 	"text":text
-			# }
-			# ctx = ContextMessage(message=resp,code=ContextCode.VERBOSE)
-			# manager.addItem(ctx)
-			# self.fbsend.sendMessage(sender_psid,resp)
-
-			# # un git du style bravo
-			# resp:dict = {
-			# 	"attachment": {
-	  #           	"type": "image",
-	  #               "payload": {
-	  #                   "attachment_id": random.choice(GIPHY.HAPPY),
-	  #               }
-			# 	}
-			# }
-			# self.fbsend.sendMessage(sender_psid,resp)
-			# time.sleep(random.choice([2,3,1]))
 
 			m = [
 				"Quelle est ta localité pour que j'affiche les pharmacies de garde 🔥",
@@ -148,7 +100,10 @@ class ServiceLocalityAnswer(Answer):
 
 			offset = len(d)
 			manager.offsetDataLocations = offset
-			manager.save({"offsetDataLocations":offset})
+			manager.save({
+				"offsetDataLocations":offset,
+				"question_processing":"NEW_SEARCH"
+			})
 
 
 			resp["quick_replies"].append({
@@ -165,8 +120,6 @@ class ServiceLocalityAnswer(Answer):
 					"payload":"SELECT_MY_LOCALITY"
 				}) 
 
-			ctx = ContextMessage(message=resp,code=ContextCode.ASK_LOCALITY,answered=False,required=True)
-			manager.addItem(ctx)
 			self.fbsend.sendMessage(sender_psid,resp)
 
 		else:

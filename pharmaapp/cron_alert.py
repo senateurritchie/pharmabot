@@ -99,7 +99,7 @@ if period is not None:
                 }
 			}
 		}
-		print(fbsend.sendMessage(sender_psid,resp).json())
+		fbsend.sendMessage(sender_psid,resp)
 
 		text = "{}, une nouvelle période de tour de garde est disponible".format(subscriber["first_name"])
 

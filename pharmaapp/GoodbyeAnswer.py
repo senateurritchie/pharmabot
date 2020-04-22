@@ -22,8 +22,6 @@ class GoodbyeAnswer(Answer):
 	def process(self,e,options:dict=None) -> str:
 		sender_psid = options["sender_psid"]
 		manager = ContextMessageManager(user_id=sender_psid)
-		manager.saveUserActivity("GOODBYE_ANSWER")
-
 
 		if manager.goodbye == False:
 			# si on a pas encore dis aurevoir au visiteur
@@ -36,13 +34,18 @@ class GoodbyeAnswer(Answer):
 				"🙋‍♀️ J'espère bien qu'on se retrouvera pour d'autres moment ☺",
 			]
 			resp:dict = {"text":random.choice(messages)}
-			ctx = ContextMessage(message=resp,code=ContextCode.HAPPY_TO_MEET)
-			manager.addItem(ctx)
 			self.fbsend.sendMessage(sender_psid,resp)
 
 		# envoi message 2
 		text = random.choice(self.reponses)
 		resp:dict = {"text":text}
-		ctx = ContextMessage(message=resp,code=ContextCode.GOODBYE)
-		manager.addItem(ctx)
 		self.fbsend.sendMessage(sender_psid,resp)
+
+		m = {
+			"nlp":{},
+			"quick_reply":{
+				"payload":"MAIN_MENU"
+			},
+			"insta":2
+		}
+		manager.handle_quick_reply(m)

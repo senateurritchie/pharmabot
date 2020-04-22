@@ -27,8 +27,10 @@ class ConfirmationAnswer(Answer):
 
 		text = random.choice(self.responses)
 		resp:dict = {"text":text}
-		cxt = ContextMessage(message=resp,code=ContextCode.CONFIRM_ANSWER)
-		manager.addItem(cxt)
 		self.fbsend.sendMessage(sender_psid,resp)
+
+		manager.save({
+			"question_processing":None,
+		})
 
 		manager.process()

@@ -208,8 +208,6 @@ class PharmaBot(AbstractBot):
 					# il faut retrouver la consultation
 					manager.processConsultingFlow(message)
 				else:
-					ctx = ContextMessage(message=message,code=ContextCode.NOTHING,author = ContextMessageAuthor.USER)
-					manager.addItem(ctx)
 					PharmaBot.answerProcessing.process(message["nlp"],{"sender_psid":sender_psid,"text":message["text"]})
 
 		elif "attachments" in message:
@@ -242,8 +240,6 @@ class PharmaBot(AbstractBot):
 							message = PharmaBot.wit.speech(f, None, {'Content-Type':"audio/flac"})
 
 							if manager.handle_quick_reply(message) is None:
-								ctx = ContextMessage(message=message,code=ContextCode.NOTHING,author = ContextMessageAuthor.USER)
-								manager.addItem(ctx)
 								PharmaBot.answerProcessing.process(message,{"sender_psid":sender_psid})
 
 
