@@ -2147,27 +2147,12 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				l'utilisateur dit vouloir etre informé du prochain tour de garde
 				"""
-
-				
 				m = [
-					'Souhaites-tu être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title()),
-					"Tu sais je peux aussi te notifier pour le prochain tour de garde {}\r\nCela t'intéresse 😁 ?".format(self._user.currentLocation.title()),
+					'{}, cliques sur <me prévenir> pour être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title())
 				]
 
 				resp:dict = {
 					"text":random.choice(m),
-					# "quick_replies":[
-					# 	{
-					# 		"content_type":"text",
-					# 		"title":"✔ Oui",
-					# 		"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
-					# 	},
-					# 	{
-					# 		"content_type":"text",
-					# 		"title":"✖ Non",
-					# 		"payload":"LOCALITY_ALERT_SUBSCRIPTION_REFUSE"
-					# 	}
-					# ]
 				}
 
 				fbsend.sendMessage(self._user.psid,resp)
