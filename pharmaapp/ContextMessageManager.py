@@ -670,7 +670,7 @@ class ContextMessageManager(EventDispatcher):
 						"user_id":self._user._id
 					})
 
-					if new_offset >= len(quizz["questions"]):
+					if new_offset > len(quizz["questions"]):
 						"""
 						le questionnaire vient d'etre epuisé
 						on met fin à ce quizz
