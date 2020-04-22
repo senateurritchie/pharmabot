@@ -474,7 +474,6 @@ class ContextMessageManager(EventDispatcher):
 				opts = db.options.find_one({})
 				cache_data = None
 				result = None
-				rset = {}
 
 				if opts["covid19"]["last_request_time"] is not None:
 					delta = datetime.datetime.utcnow() - opts["covid19"]["last_request_time"]
@@ -495,6 +494,7 @@ class ContextMessageManager(EventDispatcher):
 					result = cache_data["global_data"]
 				else:
 					result = self.load_covid19_stats(global_url);
+					cache_data = opts["covid19"]
 					cache_data["global_data"] = result
 
 
