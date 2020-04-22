@@ -49,6 +49,7 @@ class ContextUser(EventDispatcher):
 		self.in_consulting = False
 		self.survey_one_time_notif_token = None
 		self.quiz_one_time_notif_token = None
+		self.pharmacy_one_time_notif_token = None
 		
 	
 	def hydrate(self,payload):
@@ -108,6 +109,7 @@ class ContextUser(EventDispatcher):
 				"psid":self.psid,
 				"survey_one_time_notif_token":None,
 				"quiz_one_time_notif_token":None,
+				"pharmacy_one_time_notif_token":None,
 				"question_processing":None,
 				"last_survey_id": None,
 				"last_survey_offset":0,

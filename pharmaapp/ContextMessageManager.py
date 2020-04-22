@@ -194,6 +194,8 @@ class ContextMessageManager(EventDispatcher):
 		self.has_new_menu = False
 		self.survey_one_time_notif_token = None
 		self.quiz_one_time_notif_token = None
+		self.pharmacy_one_time_notif_token = None
+
 
 		# pour savoir si on a deja salué le visiteur
 		self.handshake = False
@@ -294,7 +296,7 @@ class ContextMessageManager(EventDispatcher):
 		data = {}
 		u_data = {}
 
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset","has_new_menu"]
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","pharmacy_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset","has_new_menu"]
 
 		if payload is None:
 			for key in dir(self):
@@ -2312,47 +2314,51 @@ class ContextMessageManager(EventDispatcher):
 				# si il veut afficher une autre pharmacie
 
 				isExists = False
+				one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
 
-				if self._user.preferred_localities:
-					for i,v in enumerate(self._user.preferred_localities):
-						if v["name"].lower() == self._user.currentLocation.lower():
-							isExists = True
+				self.save({
+					"pharmacy_one_time_notif_token":{
+						"locality":self._user.currentLocation.lower(),
+						"value":one_time_notif_token,
+						"used":False
+					}
+				})
 
-							if v["subscribed"] == False:
-								v["subscribed"] = True
-								self._user.preferred_localities[i]["subscribed"] = True
+				# if self._user.preferred_localities:
+				# 	for i,v in enumerate(self._user.preferred_localities):
+				# 		if v["name"].lower() == self._user.currentLocation.lower():
+				# 			isExists = True
 
-								db.user.update_one({
-									"_id":self._user._id,
-								},{
-									"$set":self._user.preferred_localities
-								})
-								break
+				# 			if v["subscribed"] == False:
+				# 				v["subscribed"] = True
+				# 				self._user.preferred_localities[i]["subscribed"] = True
 
-				if isExists == False:
-					one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
+				# 				db.user.update_one({
+				# 					"_id":self._user._id,
+				# 				},{
+				# 					"$set":self._user.preferred_localities
+				# 				})
+				# 				break
 
-					db.user.update_one({
-						"_id":self._user._id,
-					},{
-						"$push":{
-							"preferred_localities":{
-								"name":self._user.currentLocation.lower(),
-								"one_time_notif_token":one_time_notif_token,
-								"subscribed":True,
-								"create_at":datetime.datetime.utcnow()
-							}
-						}
-					})
+				# if isExists == False:
+				# 	one_time_notif_token = message["quick_reply"]["one_time_notif_token"]
+
+				# 	db.user.update_one({
+				# 		"_id":self._user._id,
+				# 	},{
+				# 		"$push":{
+				# 			"preferred_localities":{
+				# 				"name":self._user.currentLocation.lower(),
+				# 				"one_time_notif_token":one_time_notif_token,
+				# 				"subscribed":True,
+				# 				"create_at":datetime.datetime.utcnow()
+				# 			}
+				# 		}
+				# 	})
 
 				# on envoi un message de succès
-				m = [
-					"C'est bien noté tu recevras regulièrement les tours de garde {} 😉".format(self._user.currentLocation.title()),
-					"Tu recevras desormais regulièrement les tours de garde {} 😉".format(self._user.currentLocation.title()),
-				]
-
 				resp:dict = {
-					"text":random.choice(m),
+					"text":"C'est bien noté tu recevras le prochain le tour de garde {} 😉".format(self._user.currentLocation.title()),
 				}
 
 				fbsend.sendMessage(self._user.psid,resp)
