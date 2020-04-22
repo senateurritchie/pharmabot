@@ -470,6 +470,20 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				demande de statistiques sur le coronavirus
 				"""
+
+				opts = db.options.find_one({})
+				cache_data = None
+				result = None
+				rset = {}
+
+				if opts["covid19"]["last_request_time"] is not None:
+					delta = datetime.datetime.utcnow() - opts["covid19"]["last_request_time"]
+					if delta.seconds//60 < 10:
+						cache_data = opts["covid19"]
+						print('...........on charge depuis le cache....................')
+						
+
+
 				global_url = "https://www.worldometers.info/coronavirus/"
 				ivory_url = "https://www.worldometers.info/coronavirus/country/cote-d-ivoire/"
 
@@ -477,20 +491,33 @@ class ContextMessageManager(EventDispatcher):
 					"text":"{}, le coronavirus est actuellement une pandemie mondiale\r\nmerci de respecter les mesures barrières.".format(self._user.first_name),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
+				if cache_data is not None:
+					result = cache_data["global_data"]
+				else:
+					result = self.load_covid19_stats(global_url);
+					cache_data["global_data"] = result
 
-				result = self.load_covid19_stats(global_url);
+
 
 				resp:dict = {
 					"text":"Dans le monde Il y a environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
-				result = self.load_covid19_stats(ivory_url);
+				if cache_data is not None:
+					result = cache_data["ivory_data"]
+				else:
+					result = self.load_covid19_stats(ivory_url);
+					cache_data["ivory_data"] = result
 
 				resp:dict = {
 					"text":"En Côte d'Ivoire nous avons environ:\r\n{} Cas\r\n{} Décès\r\n{} Rétablis".format(result["cases"],result["deaths"],result["recovered"]),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
+
+				if cache_data is not None:
+					cache_data["last_request_time"] = datetime.datetime.utcnow()
+					db.options.update_one({'_id':opts["_id"]},{"$set":{"covid19":cache_data}})
 
 				self.save({
 					"question_processing":None,
@@ -2865,6 +2892,10 @@ class ContextMessageManager(EventDispatcher):
 
 
 	def load_covid19_stats(self,url):
+		"""
+		l'utilisateur veut voir les stitistiques du coronavirus
+		"""
+
 
 		result = {"cases":0,"deaths":0,"recovered":0}
 		r = requests.get(url)
