@@ -2145,6 +2145,8 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				l'utilisateur dit vouloir etre informé du prochain tour de garde
 				"""
+
+				
 				m = [
 					'Souhaites-tu être informé du prochain tour de garde {} 😁 ?'.format(self._user.currentLocation.title()),
 					"Tu sais je peux aussi te notifier pour le prochain tour de garde {}\r\nCela t'intéresse 😁 ?".format(self._user.currentLocation.title()),
@@ -2152,20 +2154,32 @@ class ContextMessageManager(EventDispatcher):
 
 				resp:dict = {
 					"text":random.choice(m),
-					"quick_replies":[
-						{
-							"content_type":"text",
-							"title":"✔ Oui",
-							"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
-						},
-						{
-							"content_type":"text",
-							"title":"✖ Non",
-							"payload":"LOCALITY_ALERT_SUBSCRIPTION_REFUSE"
-						}
-					]
+					# "quick_replies":[
+					# 	{
+					# 		"content_type":"text",
+					# 		"title":"✔ Oui",
+					# 		"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
+					# 	},
+					# 	{
+					# 		"content_type":"text",
+					# 		"title":"✖ Non",
+					# 		"payload":"LOCALITY_ALERT_SUBSCRIPTION_REFUSE"
+					# 	}
+					# ]
 				}
 
+				fbsend.sendMessage(self._user.psid,resp)
+
+				resp:dict = {
+					"attachment": {
+				    	"type":"template",
+				      	"payload": {
+				        	"template_type":"one_time_notif_req",
+				        	"title":"Prochain tour de garde",
+				        	"payload":"LOCALITY_ALERT_SUBSCRIPTION_ACCEPT"
+				      }
+				    }
+				}
 				fbsend.sendMessage(self._user.psid,resp)
 
 				self.save({
