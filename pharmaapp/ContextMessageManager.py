@@ -2385,7 +2385,7 @@ class ContextMessageManager(EventDispatcher):
 					"quick_replies":[
 						{
 							"content_type":"text",
-							"title":"💉 Pharmacie de garde",
+							"title":"Pharmacie de garde",
 							"payload":"GARDE_PHARMACY"
 						},
 						{
@@ -2406,14 +2406,6 @@ class ContextMessageManager(EventDispatcher):
 						}
 					]
 				}
-
-				if self._user.currentZone:
-					if self._user.currentZone == 1:
-						title = resp["quick_replies"][0]["title"]
-						resp["quick_replies"][0]["title"] = "📍 {}".format(title)
-					else:
-						title = resp["quick_replies"][1]["title"]
-						resp["quick_replies"][1]["title"] = "📍 {}".format(title)
 
 				fbsend.sendMessage(self._user.psid,resp)
 
@@ -2924,97 +2916,94 @@ class ContextMessageManager(EventDispatcher):
 
 		# on verifie que le visiteur a deja renseigné
 		# sa zone
-		if self._user.currentZone is None:
+		# if self._user.currentZone is None:
 
-			m = [
-				"si j'ai bonne memoire, tu n'as pas encore selectionné ta zone de recherche 🤔. peux-tu me le dire stp 😉",
-				"selectionne ta zone de recherche stp",
-				"pour mieux te guider selectionne ta zone de recherche",
-				"Je me rend compte que tu n'as pas encore selectionné ta zone de recherche 🤔",
-			]
+		# 	m = [
+		# 		"si j'ai bonne memoire, tu n'as pas encore selectionné ta zone de recherche 🤔. peux-tu me le dire stp 😉",
+		# 		"selectionne ta zone de recherche stp",
+		# 		"pour mieux te guider selectionne ta zone de recherche",
+		# 		"Je me rend compte que tu n'as pas encore selectionné ta zone de recherche 🤔",
+		# 	]
 
-			resp:dict = {
-				"text":self._user.first_name + ", " +random.choice(m),
-				"quick_replies":[
-					{
-						"content_type":"text",
-						"title":"📍 Abidjan",
-						"payload":"ASK_ZONE_1"
-					},
-					{
-						"content_type":"text",
-						"title":"📍 Intérieur du pays",
-						"payload":"ASK_ZONE_2"
-					}
-				]
-			}
+		# 	resp:dict = {
+		# 		"text":self._user.first_name + ", " +random.choice(m),
+		# 		"quick_replies":[
+		# 			{
+		# 				"content_type":"text",
+		# 				"title":"📍 Abidjan",
+		# 				"payload":"ASK_ZONE_1"
+		# 			},
+		# 			{
+		# 				"content_type":"text",
+		# 				"title":"📍 Intérieur du pays",
+		# 				"payload":"ASK_ZONE_2"
+		# 			}
+		# 		]
+		# 	}
 
-			fbsend.sendMessage(self._user.psid,resp)
-			processed = True
+		# 	fbsend.sendMessage(self._user.psid,resp)
+		# 	processed = True
 		
-		# on verifie que le visiteur a deja renseigné
-		# sa localité
-		elif self._user.currentLocation is None:
+		# # on verifie que le visiteur a deja renseigné
+		# # sa localité
+		# elif self._user.currentLocation is None:
 
 
-			if self.oldDataLocations:
-				# on envoi la liste preengistrée
-				text = "\r\n".join(["▪ {}".format(i) for i in self.oldDataLocations])
+		# 	if self.oldDataLocations:
+		# 		# on envoi la liste preengistrée
+		# 		text = "\r\n".join(["▪ {}".format(i) for i in self.oldDataLocations])
 
-				resp:dict = {
-					"text":text
-				}
-				ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
-				self.addItem(ctx)
-				fbsend.sendMessage(self._user.psid,resp)
+		# 		resp:dict = {
+		# 			"text":text
+		# 		}
+		# 		ctx = ContextMessage(message=resp,code=ContextCode.STREAMING_LOCALITIES)
+		# 		self.addItem(ctx)
+		# 		fbsend.sendMessage(self._user.psid,resp)
 
-			m = [
-				"si j'ai bonne memoire, je n'ai toujours pas votre localité 🤔. peux-tu me le dire svp 😉",
-				"dans quelle localité tu te trouve 🤔",
-				"pour mieux te guider dis moi ta localité 😉",
-				"j'aimerais bien savoir dans quelle localité tu es 🤔",
-				"puis-je savoir la localité qui t'interesse 🤔",
-				"mais tu ne m'as toujours pas dis dans quelle localité tu te trouve 🤔", 
-				"Je me rend compte que tu n'as pas encore mentionné ta localité 🤔",
-			]
+		# 	m = [
+		# 		"si j'ai bonne memoire, je n'ai toujours pas votre localité 🤔. peux-tu me le dire svp 😉",
+		# 		"dans quelle localité tu te trouve 🤔",
+		# 		"pour mieux te guider dis moi ta localité 😉",
+		# 		"j'aimerais bien savoir dans quelle localité tu es 🤔",
+		# 		"puis-je savoir la localité qui t'interesse 🤔",
+		# 		"mais tu ne m'as toujours pas dis dans quelle localité tu te trouve 🤔", 
+		# 		"Je me rend compte que tu n'as pas encore mentionné ta localité 🤔",
+		# 	]
 
-			resp:dict = {
-				"text":self._user.first_name + ", " + random.choice(m),
-			}
+		# 	resp:dict = {
+		# 		"text":self._user.first_name + ", " + random.choice(m),
+		# 	}
 
-			if self.oldDataLocations is not None:
-				d = self.oldDataLocations[:10]
-				resp["quick_replies"] = [{"content_type":"text","title":i,"payload":"SELECT_LOCALITY_"+i} for i in d]
+		# 	if self.oldDataLocations is not None:
+		# 		d = self.oldDataLocations[:10]
+		# 		resp["quick_replies"] = [{"content_type":"text","title":i,"payload":"SELECT_LOCALITY_"+i} for i in d]
 
-				offset = len(d)
-				self.offsetDataLocations = offset
-				self.save({"offsetDataLocations":offset})
+		# 		offset = len(d)
+		# 		self.offsetDataLocations = offset
+		# 		self.save({"offsetDataLocations":offset})
 
-				resp["quick_replies"].append({
-					"content_type":"text",
-					"title":"Suivant ➡",
-					"payload":"NEXT_LOCALITIES"
-				})
-
-
-			if self._user.currentLocation is not None:
-				if "quick_replies" not in resp:
-					resp["quick_replies"] = []
-
-				resp["quick_replies"].insert(0,{
-					"content_type":"text",
-					"title":"📍 {}".format(self._user.currentLocation),
-					"payload":"SELECT_MY_LOCALITY"
-				})
+		# 		resp["quick_replies"].append({
+		# 			"content_type":"text",
+		# 			"title":"Suivant ➡",
+		# 			"payload":"NEXT_LOCALITIES"
+		# 		})
 
 
-			fbsend.sendMessage(self._user.psid,resp)
-			processed = True
+		# 	if self._user.currentLocation is not None:
+		# 		if "quick_replies" not in resp:
+		# 			resp["quick_replies"] = []
 
-		# if processed == False:
-		# 	self._user.currentZone = None
-		# 	self.currentZone = None
-		# 	self.process()
+		# 		resp["quick_replies"].insert(0,{
+		# 			"content_type":"text",
+		# 			"title":"📍 {}".format(self._user.currentLocation),
+		# 			"payload":"SELECT_MY_LOCALITY"
+		# 		})
+
+
+		# 	fbsend.sendMessage(self._user.psid,resp)
+		# 	processed = True
+
+		
 
 
 
