@@ -584,8 +584,8 @@ class ContextMessageManager(EventDispatcher):
 			elif payload == "QUIZZ_STARTED": 
 				"""
 				demarrage d'un quizz
+				alors
 				"""
-
 				quizz = db.quizz.find_one({
 					"_id":self._user.last_quizz_id
 				})
