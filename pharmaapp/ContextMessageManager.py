@@ -489,7 +489,7 @@ class ContextMessageManager(EventDispatcher):
 				ivory_url = "https://www.worldometers.info/coronavirus/country/cote-d-ivoire/"
 
 				resp:dict = {
-					"text":"{}, le coronavirus est actuellement une pandemie mondiale\r\nmerci de respecter les mesures barrières.".format(self._user.first_name),
+					"text":"{}, merci de respecter les mesures barrières.".format(self._user.first_name),
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 				
@@ -520,7 +520,7 @@ class ContextMessageManager(EventDispatcher):
 				if in_cache == False:
 
 
-					
+
 					opts["last_request_time"] = datetime.datetime.utcnow()
 					db.options.update_one({
 						'_id':opts["_id"]
