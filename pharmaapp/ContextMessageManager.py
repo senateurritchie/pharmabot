@@ -517,7 +517,10 @@ class ContextMessageManager(EventDispatcher):
 				}
 				fbsend.sendMessage(self._user.psid,resp)
 
-				if in_cache:
+				if in_cache == False:
+
+
+					
 					opts["last_request_time"] = datetime.datetime.utcnow()
 					db.options.update_one({
 						'_id':opts["_id"]
