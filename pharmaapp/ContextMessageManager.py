@@ -664,12 +664,19 @@ class ContextMessageManager(EventDispatcher):
 					question = quizz["questions"][self._user.last_quizz_offset]
 					new_offset = self._user.last_quizz_offset + 1
 
+
+					quizz_player = db.quizz_player.find_one({
+						"quizz_id":quizz["_id"],
+						"user_id":self._user._id
+					})
+
 					if new_offset >= len(quizz["questions"]):
 						"""
 						le questionnaire vient d'etre epuisé
 						on met fin à ce quizz
 						"""
 
+						
 						resp:dict = {
 							"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
 						}
@@ -692,43 +699,89 @@ class ContextMessageManager(EventDispatcher):
 
 					else:
 
-						is_exists = []
-						if "users" in quizz:
-							is_exists = [i for i in quizz["users"] if i["_id"] == self._user._id]
-						
-						if len(is_exists) == 0:
-							db.quizz.update_one({
-								"_id":quizz["_id"]
-							},{
-								"$push":{
-									"users":{
-										"_id":self._user._id,
-										"finish_at":None,
-										"startd_at":datetime.datetime.utcnow()
-									}
-								}
-							})
 
+						
+						if quizz_player is None:
+							quizz_player_id = db.quizz_player.insert_one({
+								"quizz_id":quizz["_id"],
+								"user_id":self._user._id,
+								"started_at":datetime.datetime.utcnow(),
+								"finished_at":None,
+								"score":0
+								"offset":0
+							}).inserted_id
+
+							quizz_player = db.quizz_player.find_one({"_id":quizz_player_id})
+
+						true_answer = None
+						user_choice = None
 
 						for i,question in enumerate(quizz["questions"]):
 							if self._user.last_quizz_offset == i:
 								for y,choice in enumerate(question["choices"]):
-									if choice["_id"] == choice_id:
-										total = quizz["questions"][i]["choices"][y]["answers"]
-										quizz["questions"][i]["choices"][y]["answers"] = total+1
+									if choice["is_true"]:
+										true_answer = choice
 
-										db.quizz.update_one({
-											"_id":quizz["_id"],
-										},{
-											"$set":{"questions":quizz["questions"]}
-										})
-										break
+									if choice["_id"] == choice_id:
+										user_choice = choice
+
+										if db.quizz_player_response.find_one({"quizz_player_id":quizz_player["_id"],"choice_id":choice["_id"]}) is None:
+
+											db.quizz_player_response.insert_one({
+												"quizz_player_id":quizz_player["_id"],
+												"choice_id":choice["_id"],
+												"create_at":datetime.datetime.utcnow(),
+											})
 									
 								break
 
 						self.save({
 							"last_quizz_offset":new_offset,
 						})
+
+						update_payload = {
+							"$set":{
+								"offset":new_offset,
+							}
+						}
+
+						text:str = ""
+
+						if user_choice["_id"] == true_answer["_id"]:
+							"""
+							bonne reponse
+							"""
+							update_payload["$inc"] = {
+								"score":5
+							}
+
+							text = "Bonne reponse"
+
+							if user_choice["autoresponder"]:
+								text = text + "\r\n" + user_choice["autoresponder"]
+							elif quizz["good_resp_txt"]:
+								text = text + "\r\n" + quizz["good_resp_txt"]
+
+						else:
+							"""
+							mauvaise reponse
+							"""
+							text = "Mauvaise reponse"
+
+							if user_choice["autoresponder"]:
+								text = text + "\r\n" + user_choice["autoresponder"]
+							elif quizz["good_resp_txt"]:
+								text = text + "\r\n" + quizz["bad_resp_txt"]
+
+
+						resp:dict = {
+							"text":text,
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
+						db.quizz_player.update_one({
+							"_id":quizz_player["_id"]
+						},update_payload)
 
 						self._user.last_quizz_offset = new_offset
 						message["quick_reply"]["payload"] = "QUIZZ_STARTED"
