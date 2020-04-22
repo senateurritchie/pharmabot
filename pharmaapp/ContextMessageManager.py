@@ -675,6 +675,14 @@ class ContextMessageManager(EventDispatcher):
 						le questionnaire vient d'etre epuisé
 						on met fin à ce quizz
 						"""
+						if quizz_player["finished_at"] is None:
+							db.quizz_player.update_one({
+								"_id":quizz_player["_id"]
+							},{
+								"$set":{
+									"finished_at":datetime.datetime.utcnow(),
+								}
+							})
 
 						
 						resp:dict = {
