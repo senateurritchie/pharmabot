@@ -291,7 +291,8 @@ class PharmaBot(AbstractBot):
 
 
 		referrals = [
-			"CONSULTATION_REQUEST"
+			"CONSULTATION_REQUEST",
+			"COVID19_STATS"
 		]
 
 		if received_referral["ref"] not in referrals:
