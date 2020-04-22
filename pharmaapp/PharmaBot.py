@@ -321,7 +321,7 @@ class PharmaBot(AbstractBot):
 			PharmaBot.fbsend.setPersitantMenu(manager._user.psid)
 			manager.save({"has_new_menu":False})
 
-
+		print("oooooooooooooooooooooooooooooooooooooooooooooo",received_optin)
 		m = {
 			"nlp":{},
 			"quick_reply":received_optin,
