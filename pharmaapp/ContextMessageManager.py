@@ -670,79 +670,42 @@ class ContextMessageManager(EventDispatcher):
 						"user_id":self._user._id
 					})
 
-					if new_offset > len(quizz["questions"]):
-						"""
-						le questionnaire vient d'etre epuisé
-						on met fin à ce quizz
-						"""
-						if quizz_player["finished_at"] is None:
-							db.quizz_player.update_one({
-								"_id":quizz_player["_id"]
-							},{
-								"$set":{
-									"finished_at":datetime.datetime.utcnow(),
-								}
-							})
-
 						
-						resp:dict = {
-							"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
-						}
-						fbsend.sendMessage(self._user.psid,resp)
+					if quizz_player is None:
+						quizz_player_id = db.quizz_player.insert_one({
+							"quizz_id":quizz["_id"],
+							"user_id":self._user._id,
+							"started_at":datetime.datetime.utcnow(),
+							"finished_at":None,
+							"score":0,
+							"offset":0
+						}).inserted_id
 
-						resp:dict = {
-							"attachment": {
-						    	"type":"template",
-						      	"payload": {
-						        	"template_type":"one_time_notif_req",
-						        	"title":"Quizz Alerte",
-						        	"payload":"OPTIN_QUIZZ_ALERT"
-						      }
-						    }
-						}
-						fbsend.sendMessage(self._user.psid,resp)
-						self.save({
-							"question_processing":None,
-						})
+						quizz_player = db.quizz_player.find_one({"_id":quizz_player_id})
 
-					else:
+					true_answer = None
+					user_choice = None
 
+					for i,question in enumerate(quizz["questions"]):
+						if self._user.last_quizz_offset == i:
+							for y,choice in enumerate(question["choices"]):
+								if choice["is_true"]:
+									true_answer = choice
 
-						
-						if quizz_player is None:
-							quizz_player_id = db.quizz_player.insert_one({
-								"quizz_id":quizz["_id"],
-								"user_id":self._user._id,
-								"started_at":datetime.datetime.utcnow(),
-								"finished_at":None,
-								"score":0,
-								"offset":0
-							}).inserted_id
+								if choice["_id"] == choice_id:
+									user_choice = choice
 
-							quizz_player = db.quizz_player.find_one({"_id":quizz_player_id})
+									if db.quizz_player_response.find_one({"quizz_player_id":quizz_player["_id"],"choice_id":choice["_id"]}) is None:
 
-						true_answer = None
-						user_choice = None
+										db.quizz_player_response.insert_one({
+											"quizz_player_id":quizz_player["_id"],
+											"choice_id":choice["_id"],
+											"create_at":datetime.datetime.utcnow(),
+										})
+								
+							break
 
-						for i,question in enumerate(quizz["questions"]):
-							if self._user.last_quizz_offset == i:
-								for y,choice in enumerate(question["choices"]):
-									if choice["is_true"]:
-										true_answer = choice
-
-									if choice["_id"] == choice_id:
-										user_choice = choice
-
-										if db.quizz_player_response.find_one({"quizz_player_id":quizz_player["_id"],"choice_id":choice["_id"]}) is None:
-
-											db.quizz_player_response.insert_one({
-												"quizz_player_id":quizz_player["_id"],
-												"choice_id":choice["_id"],
-												"create_at":datetime.datetime.utcnow(),
-											})
-									
-								break
-
+					if user_choice:
 						self.save({
 							"last_quizz_offset":new_offset,
 						})
@@ -792,9 +755,46 @@ class ContextMessageManager(EventDispatcher):
 						},update_payload)
 
 						self._user.last_quizz_offset = new_offset
-						message["quick_reply"]["payload"] = "QUIZZ_STARTED"
-						message["insta"] = 2
-						return self.handle_quick_reply(message)
+
+
+						if new_offset >= len(quizz["questions"]):
+							"""
+							le questionnaire vient d'etre epuisé
+							on met fin à ce quizz
+							"""
+							if quizz_player["finished_at"] is None:
+								db.quizz_player.update_one({
+									"_id":quizz_player["_id"]
+								},{
+									"$set":{
+										"finished_at":datetime.datetime.utcnow(),
+									}
+								})
+
+							
+							resp:dict = {
+								"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
+							resp:dict = {
+								"attachment": {
+							    	"type":"template",
+							      	"payload": {
+							        	"template_type":"one_time_notif_req",
+							        	"title":"Quizz Alerte",
+							        	"payload":"OPTIN_QUIZZ_ALERT"
+							      }
+							    }
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+							self.save({
+								"question_processing":None,
+							})
+						else:
+							message["quick_reply"]["payload"] = "QUIZZ_STARTED"
+							message["insta"] = 2
+							return self.handle_quick_reply(message)
 
 				else:
 					"""
