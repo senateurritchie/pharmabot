@@ -707,7 +707,7 @@ class ContextMessageManager(EventDispatcher):
 								"user_id":self._user._id,
 								"started_at":datetime.datetime.utcnow(),
 								"finished_at":None,
-								"score":0
+								"score":0,
 								"offset":0
 							}).inserted_id
 
