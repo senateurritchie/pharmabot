@@ -49,32 +49,59 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="welcome_txt">Message de bienvenu:</label>
+                        <textarea name="welcome_txt" class="form-control" id="welcome_txt" placeholder="Message de bienvenu avant de commencer le quizz"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_txt">Message de fin:</label>
+                        <textarea name="end_txt" class="form-control" id="end_txt" placeholder="Message de fin avant de terminer le quizz"></textarea>
+                    </div>
+
+                    <div class="form-group">
                         <label for="good_resp_msg">Bonne reponse:</label>
-                        <textarea name="good_resp_msg" class="form-control" id="good_resp_msg" placeholder="Saisir le message en cas de bonne reponse"></textarea>
+                        <textarea name="good_resp_msg" class="form-control" id="good_resp_msg" placeholder="le message à afficher pour les bonnes reponses"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="bad_resp_msg">Mauvaise reponse:</label>
-                        <textarea name="bad_resp_msg"  class="form-control" id="bad_resp_msg" placeholder="Saisir le message en cas de mauvaise reponse"></textarea>
+                        <textarea name="bad_resp_msg"  class="form-control" id="bad_resp_msg" placeholder="le message à afficher pour les mauvaises reponses"></textarea>
                     </div>
 
-                    <div class="form-group" style="position:relative">
-                        <div class="custom-checkbox custom-control">
-                            <input name="is_active" type="checkbox" id="exampleCustomCheckbox" class="custom-control-input">
-                            <label class="custom-control-label" for="exampleCustomCheckbox">
-                                publier
-                            </label>
+                    <div class="row">
+                        <div class="col-md-6">
+
+                            <div class="form-group" style="position:relative">
+                                <div class="custom-checkbox custom-control">
+                                    <input name="is_active" type="checkbox" id="exampleCustomCheckbox" class="custom-control-input">
+                                    <label class="custom-control-label" for="exampleCustomCheckbox">
+                                        publier
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="position:relative">
+                                <div class="custom-checkbox custom-control">
+                                    <input name="is_stick" type="checkbox" id="exampleCustomCheckbox2" class="custom-control-input">
+                                    <label class="custom-control-label" for="exampleCustomCheckbox2">
+                                        à l'affiche
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group" style="position:relative">
+                                <div class="custom-checkbox custom-control">
+                                    <input name="notify_subcribers" type="checkbox" id="notifyCheckbox" class="custom-control-input">
+                                    <label class="custom-control-label" for="notifyCheckbox">
+                                        Notifier les abonnés lors de la prémière publication ?
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="position:relative">
-                        <div class="custom-checkbox custom-control">
-                            <input name="is_stick" type="checkbox" id="exampleCustomCheckbox2" class="custom-control-input">
-                            <label class="custom-control-label" for="exampleCustomCheckbox2">
-                                à l'affiche
-                            </label>
-                        </div>
-                    </div>
                     
                     <h4>Questions</h4>
                     <hr>
@@ -140,6 +167,16 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="welcome_txt2">Message de bienvenu:</label>
+                            <textarea name="welcome_txt" class="form-control" id="welcome_txt2" placeholder="Message de bienvenu avant de commencer le quizz"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="end_txt2">Message de fin:</label>
+                            <textarea name="end_txt" class="form-control" id="end_txt2" placeholder="Message de fin avnt de terminer le quizz"></textarea>
+                        </div>
+
+                        <div class="form-group">
                             <label for="good_resp_msg2">Bonne reponse:</label>
                             <textarea name="good_resp_msg" class="form-control" id="good_resp_msg2" placeholder="Saisir le message en cas de bonne reponse">waoh!!! c'est bien</textarea>
                         </div>
@@ -149,24 +186,47 @@
                             <textarea name="bad_resp_msg" class="form-control" id="bad_resp_msg2" placeholder="Saisir le message en cas de mauvaise reponse">Ne baissez pas les bras {{ first_name }}, vous pouvez y arriver</textarea>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6">
+                                
+                                <div class="form-group" style="position:relative">
+                                    <div class="custom-checkbox custom-control">
+                                        <input name="is_active" type="checkbox" id="exampleCustomCheckbox22" class="custom-control-input">
+                                        <label class="custom-control-label" for="exampleCustomCheckbox22">
+                                            publier
+                                        </label>
+                                    </div>
+                                </div>
 
-                        <div class="form-group" style="position:relative">
-                            <div class="custom-checkbox custom-control">
-                                <input name="is_active" type="checkbox" id="exampleCustomCheckbox22" class="custom-control-input">
-                                <label class="custom-control-label" for="exampleCustomCheckbox22">
-                                    publier
-                                </label>
+                                <div class="form-group" style="position:relative">
+                                    <div class="custom-checkbox custom-control">
+                                        <input name="is_stick" type="checkbox" id="exampleCustomCheckbox33" class="custom-control-input">
+                                        <label class="custom-control-label" for="exampleCustomCheckbox33">
+                                            à l'affiche
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+                                
+                                <div class="form-group" style="position:relative">
+                                    <div class="custom-checkbox custom-control">
+                                        <input name="notify_subcribers" type="checkbox" id="notifyCheckbox33" class="custom-control-input">
+                                        <label class="custom-control-label" for="notifyCheckbox33">
+                                            Notifier les abonnés lors de la prémière publication
+                                        </label>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
-                        <div class="form-group" style="position:relative">
-                            <div class="custom-checkbox custom-control">
-                                <input name="is_stick" type="checkbox" id="exampleCustomCheckbox33" class="custom-control-input">
-                                <label class="custom-control-label" for="exampleCustomCheckbox33">
-                                    à l'affiche
-                                </label>
-                            </div>
-                        </div>
+
+                        
+
+                       
 
                         <div class="setting-toolbar my-2">
                             <button type="button" class="btn btn-sm btn-primary" >
@@ -418,6 +478,8 @@
 
                 let data = {
                     "title":modalUpdateSetting.find("input[name=title]").val(),
+                    "welcome_txt":modalUpdateSetting.find("textarea[name=welcome_txt]").val(),
+                    "end_txt":modalUpdateSetting.find("textarea[name=end_txt]").val(),
                     "good_resp_msg":modalUpdateSetting.find("textarea[name=good_resp_msg]").val(),
                     "bad_resp_msg":modalUpdateSetting.find("textarea[name=bad_resp_msg]").val()
                 }
@@ -428,6 +490,10 @@
 
                 if(modalUpdateSetting.find("input[name=is_stick]").prop("checked")){
                     data["is_stick"] = "on";
+                }
+
+                if(modalUpdateSetting.find("input[name=notify_subcribers]").prop("checked")){
+                    data["notify_subcribers"] = "on";
                 }
 
                 $.ajax({
@@ -850,10 +916,19 @@
                         modalUpdate.find('input[name=title]').val(data.title)
                         modalUpdate.find('input[name=is_active]').prop({"checked":data.is_active})
                         modalUpdate.find('input[name=is_stick]').prop({"checked":data.is_stick})
+                        modalUpdate
+                        .find('input[name=notify_subcribers]')
+                        .prop({"checked":data.notify_subcribers})
+
+                        if(data.published_at != null){
+                            modalUpdate
+                            .find('input[name=notify_subcribers]')
+                            .attr("disabled","disabled")
+                        }
                         modalUpdate.find("input[name=quizz_id]").val(data._id.$oid)
 
-
-
+                        modalUpdate.find('textarea[name=welcome_txt]').val(data.welcome_txt);
+                        modalUpdate.find('textarea[name=end_txt]').val(data.end_txt);
                         modalUpdate.find('textarea[name=good_resp_msg]').val(data.good_resp_txt);
                         modalUpdate.find('textarea[name=bad_resp_msg]').val(data.bad_resp_txt);
 

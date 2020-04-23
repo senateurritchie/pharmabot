@@ -671,12 +671,19 @@ def quizz_save(quizz_id=None):
 	
 	quizz_id = quizz_id if quizz_id is not None else request.form.get("quizz_id",None)
 	title = request.form.get("title","").strip()
+	welcome_text = request.form.get("welcome_text","").strip()
+	end_text = request.form.get("end_text","").strip()
 	good_resp_msg = request.form.get("good_resp_msg","").strip()
 	bad_resp_msg = request.form.get("bad_resp_msg","").strip()
 	is_active = request.form.get("is_active",False)
 	is_active = True if is_active == "on" else is_active
 	is_stick = request.form.get("is_stick",False)
 	is_stick = True if is_stick == "on" else is_stick
+
+	notify_subcribers = request.form.get("notify_subcribers",False)
+	notify_subcribers = True if notify_subcribers == "on" else notify_subcribers
+
+	
 	slug = slugify(title)
 	is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
@@ -700,11 +707,14 @@ def quizz_save(quizz_id=None):
 			{
 				"$set":{
 					"title":title,
+					"welcome_text":welcome_text,
+					"end_text":end_text,
 					"good_resp_txt":good_resp_msg,
 					"bad_resp_txt":bad_resp_msg,
 					"slug":slug,
 					"is_active":is_active,
 					"is_stick":is_stick,
+					"notify_subcribers":notify_subcribers
 				}
 			}
 		)
@@ -751,12 +761,14 @@ def quizz_save(quizz_id=None):
 				"good_resp_txt":good_resp_msg,
 				"bad_resp_txt":bad_resp_msg,
 				"slug":slug,
-				"welcome_text":None,
-				"end_text":None,
+				"welcome_text":welcome_text,
+				"end_text":end_text,
 				"is_active":is_active,
 				"is_stick":is_stick,
+				"notify_subcribers":notify_subcribers,
 				"is_closed":False,
 				"create_at":datetime.datetime.utcnow(),
+				"published_at":None,
 				"users":[],
 				"questions":questions,
 			}).inserted_id
