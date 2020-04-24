@@ -132,6 +132,130 @@ def users():
 	return render('admin/users-index.html', data=data)
 
 
+@bp.route("/medias", methods=('GET',))
+@is_granted("role_admin")
+@login_guard
+def medias():
+	"""
+	la gestion des medias dans le chatbot
+	"""
+	data = db.medias.aggregate([
+		
+		{"$sort":{"_id":-1}},
+		{"$limit":50},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"added_by",
+				"foreignField":"_id",
+				"as":"added_by"
+			}
+		},
+		{"$addFields":{"added_by":{"$arrayElemAt":["$added_by",0]}}}
+	])
+
+	data = [i for i in data]
+
+	return render('admin/medias-index.html.jinja2', data=data)
+
+@bp.route("/mediatheque/<media_type>", methods=('GET',))
+@is_granted("role_admin")
+@login_guard
+def mediatheque(media_type):
+	"""
+	permet d'afficher la mediatheque dans une iframe
+	"""
+	data = db.medias.aggregate([
+		{"$match":{
+			"type":media_type
+		}},
+		
+		{"$sort":{"_id":-1}},
+		{"$limit":50},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"added_by",
+				"foreignField":"_id",
+				"as":"added_by"
+			}
+		},
+		{"$addFields":{"added_by":{"$arrayElemAt":["$added_by",0]}}}
+	])
+
+	data = [i for i in data]
+
+	return render('admin/medias-modal.html.jinja2', data=data)
+
+
+@bp.route("/medias/<media_id>", methods=('GET',))
+@is_granted("role_admin")
+@login_guard
+def get_media(media_id):
+	"""
+	recuperation d'un media
+	"""
+	media = db.medias.aggregate([
+		{"$match":{
+			"_id":ObjectId(media_id)
+		}},
+		{
+			"$lookup":{
+				"from":"admin",
+				"localField":"added_by",
+				"foreignField":"_id",
+				"as":"added_by"
+			}
+		},
+		{"$addFields":{"added_by":{"$arrayElemAt":["$added_by",0]}}}
+	])
+
+	media = [i for i in media]
+
+	if len(media) == 0:
+		result= {"logs":"ce media n'existe pas","code":404}
+		r = response(json.dumps(result))
+		r.headers["content-type"] = "application/json"
+		return r,200
+
+	r = response(json.dumps({"payload":media,"code":200}, default=json_util.default))
+	r.headers["content-type"] = "application/json"
+	return r
+
+@bp.route("/medias/<media_id>", methods=("DELETE",))
+@is_granted("role_super_admin")
+@login_guard
+def delete_media(media_id):
+	"""
+	suppression d'un media
+	"""
+	media = db.medias.find_one({
+		"_id":ObjectId(media_id)
+	})
+
+	if media is None:
+		return "",404
+
+	db.medias.delete_one({
+		"_id":media["_id"]
+	})
+
+	return "",200
+
+@bp.route("/medias/<media_id>", methods=("POST",))
+@is_granted("role_admin")
+@login_guard
+def post_media():
+	"""
+	ajout d'un media dans la base de donnée
+	"""
+
+	file = request.files.get("file")
+	if not file:
+		return abort(400)
+
+	return "",200
+
 
 @bp.route("/garde-periods", methods=('GET',))
 @is_granted("role_pharmacy")

@@ -94,6 +94,8 @@ def load_logged_in_user():
 
 
 @bp.route("/register", methods=('GET','POST'))
+
+@is_granted("role_super_admin")
 def register():
 
 	if g.user is not None:

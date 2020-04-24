@@ -46,6 +46,12 @@
                         Vue globale
                     </a>
 
+
+                    <a href="{{ url_for('admin.medias') }}" class="{{ 'mm-active' if request.url_rule.endpoint == 'admin.medias' else '' }}">
+                        <i class="metismenu-icon pe-7s-paperclip"></i>
+                        Mediathèque
+                    </a>
+
                 </li>
 
                 <li>

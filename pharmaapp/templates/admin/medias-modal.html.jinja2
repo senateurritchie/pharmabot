@@ -1,0 +1,125 @@
+<!Doctype html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="Content-Language" content="en">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>Mediathèque</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+        <meta name="description" content="">
+        <meta name="msapplication-tap-highlight" content="no">
+        
+        {% block stylesheets %}
+            <link href="{{ url_for('static', filename='admin/main.css') }}" rel="stylesheet">
+            <link href="{{ url_for('static', filename='autocomplete.css') }}" rel="stylesheet">
+        {% endblock %}
+
+        <style>
+            .upload-area:not(.has-file) .card-footer, .upload-area:not(.has-file) .file-detail{
+                display: none;
+            }
+
+            .drop-area{
+                height:80vh;
+                border:4px dashed #ccc;
+                cursor: pointer;
+            }
+
+            .galery-item{
+                width: 100px;
+                height: 100px;
+            }
+       </style>
+    </head>
+
+    <body style="height: 100vh;overflow: hidden;">
+        
+        <ul class="nav nav-tabs mb-0" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active text-dark" id="upload-tab" data-toggle="tab" href="#upload-content" role="tab" aria-controls="home" aria-selected="true">
+                    <h6>Charger un fichier</h6>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="all-media-tab" data-toggle="tab" href="#all-media-content" role="tab" aria-controls="profile" aria-selected="false">
+                    
+                    <h6>Choisir à partir de la galeries</h6>
+                </a>
+            </li>
+
+        </ul>
+        
+        <div class="tab-content pb-0" id="myTabContent" >
+
+            <div class="tab-pane fade show active pt-4 upload-area" id="upload-content" role="tabpanel" aria-labelledby="upload-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;" >
+
+                <div  class="drop-area d-flex flex-column justify-content-center align-items-center">
+                    <h3>
+                        Cliquer ici pour charger un fichier
+                    </h3>
+
+                    <div class="file-detail text-center">
+                        <i class="fa fa-file fa-5x"></i>
+                        <h4 class="file-name"></h4>
+                    </div>
+                </div>
+
+                <input class="d-none" type="file" name="file" accept="image/*" />
+                
+            </div>
+            
+            <div class="tab-pane fade pt-4" id="all-media-content" role="tabpanel" aria-labelledby="all-media-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;">
+               
+            </div>
+            
+        </div>
+
+        {% block javascripts %}
+            <script type="text/javascript" src="{{ url_for('static', filename='admin/assets/scripts/main.js') }}"></script>
+
+             <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    
+            <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+
+            <script>
+
+                jQuery(document).ready(function($){
+                    let uploadzone = $(".upload-area");
+                    let input_file = uploadzone.find("input[type=file]");
+                    let dropzone = uploadzone.find(".drop-area");
+                    let filedetail = uploadzone.find(".file-detail");
+
+                    input_file.on("change",function(e){
+                        let file = e.target.files[0];
+                        let filesize = file.size;
+                        let filename = file.name;
+
+                        let reader = new FileReader();
+
+                        reader.addEventListener('load', function() {
+                            let img = $('<a href="" class="mr-2 mb-2"><img class="galery-item" src="'+reader.result+'" /></a>');
+                            $("#all-media-content").append(img);
+                            $('#myTab a[href="#all-media-content"]').tab('show')
+                        });
+                        reader.readAsDataURL(file);
+                        uploadzone.addClass("has-file")
+                    })
+
+
+                    dropzone.on({
+                        "click":function(e){
+                            input_file.click();
+                        }
+                    });
+                });
+            </script>
+        {% endblock %}
+
+    </body>
+</html>

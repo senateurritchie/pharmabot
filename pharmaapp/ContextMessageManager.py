@@ -723,7 +723,7 @@ class ContextMessageManager(EventDispatcher):
 							bonne reponse
 							"""
 							update_payload["$inc"] = {
-								"score":5
+								"score":1
 							}
 
 							text = "Bonne reponse"
