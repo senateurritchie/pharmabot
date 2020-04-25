@@ -1,0 +1,5 @@
+{% for el in data %}
+	<a data-ref="{{ el._id }}" href="" class="gallery-item mr-1 mb-2 d-inline-block">
+		<img src="{{ url_for('static', filename='mediatheque/{}'.format(el.filename)) }}" />
+	</a>
+{% endfor %}

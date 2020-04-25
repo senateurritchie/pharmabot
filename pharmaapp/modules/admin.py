@@ -2,6 +2,7 @@
 from flask import (Flask, flash,request, make_response as response, abort, redirect,url_for,render_template as render, session,escape,g,Blueprint)
 
 from werkzeug.security  import check_password_hash,generate_password_hash
+from werkzeug.utils import secure_filename
 
 import pymongo
 from bson.objectid import ObjectId
@@ -12,7 +13,7 @@ from ..OfficineUpdater import OfficineUpdater
 
 
 import json
-import datetime
+import datetime,secrets
 from slugify import slugify
 from bson import json_util
 import os
@@ -139,7 +140,7 @@ def medias():
 	"""
 	la gestion des medias dans le chatbot
 	"""
-	data = db.medias.aggregate([
+	data = db.mediatheque.aggregate([
 		
 		{"$sort":{"_id":-1}},
 		{"$limit":50},
@@ -152,9 +153,18 @@ def medias():
 			}
 		},
 		{"$addFields":{"added_by":{"$arrayElemAt":["$added_by",0]}}}
+
 	])
 
 	data = [i for i in data]
+
+	if request.headers.get("accept") == "text/html":
+		payload = render('admin/gallery-item-render.html.jinja2', data=data)
+		result= {"payload":payload,"status":True}
+		r = response(json.dumps(result))
+		r.headers["content-type"] = "application/json"
+		return r,200
+
 
 	return render('admin/medias-index.html.jinja2', data=data)
 
@@ -165,7 +175,7 @@ def mediatheque(media_type):
 	"""
 	permet d'afficher la mediatheque dans une iframe
 	"""
-	data = db.medias.aggregate([
+	data = db.mediatheque.aggregate([
 		{"$match":{
 			"type":media_type
 		}},
@@ -195,7 +205,7 @@ def get_media(media_id):
 	"""
 	recuperation d'un media
 	"""
-	media = db.medias.aggregate([
+	media = db.mediatheque.aggregate([
 		{"$match":{
 			"_id":ObjectId(media_id)
 		}},
@@ -229,32 +239,96 @@ def delete_media(media_id):
 	"""
 	suppression d'un media
 	"""
-	media = db.medias.find_one({
+	from pathlib import Path
+	media = db.mediatheque.find_one({
 		"_id":ObjectId(media_id)
 	})
 
 	if media is None:
 		return "",404
 
-	db.medias.delete_one({
+	db.mediatheque.delete_one({
 		"_id":media["_id"]
 	})
 
+	path = Path(__file__).parent.resolve() / "../static/mediatheque" / media["filename"]
+	if path.exists() and path.is_file():
+		path.unlink()
+
+
 	return "",200
 
-@bp.route("/medias/<media_id>", methods=("POST",))
+@bp.route("/medias/upload", methods=("POST",))
 @is_granted("role_admin")
 @login_guard
-def post_media():
+def upload_media():
 	"""
 	ajout d'un media dans la base de donnée
 	"""
-
+	import mimetypes
+	from pathlib import Path
+	result = {"status":False}
 	file = request.files.get("file")
+
 	if not file:
 		return abort(400)
 
-	return "",200
+	allowed_types = ["jpg","jpeg","gif","png","mp4","mp3"]
+	allowed_mimes = ["audio","video","image"]
+
+	name =  secure_filename(file.filename)
+	mime = mimetypes.guess_type(name)[0]
+	ext = name[-3:]
+
+	if mime.split("/")[0] not in allowed_mimes:
+		result["logs"] = "les fichiers autorisées sont: {}".format(", ".join(allowed_types))
+		r = response(json.dumps(result))
+		r.headers["content-type"] = "application/json"
+		return r,400
+
+	if ext not in allowed_types:
+		result["logs"] = "les extensions de fichiers autorisées sont: {}".format(", ".join(allowed_types))
+		r = response(json.dumps(result))
+		r.headers["content-type"] = "application/json"
+		return r,400
+
+
+	size = file.seek(0,2)
+	size = file.tell()
+	file.seek(0,0)
+
+	path = Path(__file__).parent.resolve() / "../static/mediatheque"
+
+	if not path.exists():
+		path.mkdir()
+
+	is_file_exists = True
+	filename = None
+
+	while is_file_exists:
+		filename =  "{}.{}".format(secrets.token_hex(16),ext)
+		p = path / filename
+		if not p.exists():
+			path = p
+			break
+
+	file.save(path)
+
+	obj = {
+		"original_filename":name,
+		"filename":filename,
+		"mime_type":mime,
+		"extension":ext,
+		"size":size
+	}
+
+	db.mediatheque.insert_one(obj)
+
+	result["payload"] = obj
+	result["status"] = True
+	r = response(json.dumps(result, default=json_util.default))
+	r.headers["content-type"] = "application/json"
+	return r,200
 
 
 @bp.route("/garde-periods", methods=('GET',))

@@ -16,7 +16,13 @@
             <link href="{{ url_for('static', filename='autocomplete.css') }}" rel="stylesheet">
         {% endblock %}
 
+
         <style>
+
+            #all-media-content.loaded .helper{
+                display: none;
+            }
+
             .upload-area:not(.has-file) .card-footer, .upload-area:not(.has-file) .file-detail{
                 display: none;
             }
@@ -27,7 +33,15 @@
                 cursor: pointer;
             }
 
-            .galery-item{
+            .gallery-item{
+               border: 2px solid transparent;
+            }
+
+            .gallery-item:hover{
+                border-color: #d92550;
+            }
+
+            .gallery-item img{
                 width: 100px;
                 height: 100px;
             }
@@ -38,15 +52,15 @@
         
         <ul class="nav nav-tabs mb-0" id="myTab" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active text-dark" id="upload-tab" data-toggle="tab" href="#upload-content" role="tab" aria-controls="home" aria-selected="true">
-                    <h6>Charger un fichier</h6>
+                <a class="nav-link active text-dark" id="upload-tab" data-toggle="tab" data-target="#upload-content" role="tab" aria-controls="upload-content" aria-selected="true">
+                    Charger un fichier
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-dark" id="all-media-tab" data-toggle="tab" href="#all-media-content" role="tab" aria-controls="profile" aria-selected="false">
+                <a class="nav-link text-dark" id="all-media-tab" data-toggle="tab" data-target="#all-media-content" role="tab" aria-controls="all-media-content" aria-selected="false">
                     
-                    <h6>Choisir à partir de la galeries</h6>
+                    Choisir à partir de la galeries
                 </a>
             </li>
 
@@ -72,6 +86,31 @@
             </div>
             
             <div class="tab-pane fade pt-4" id="all-media-content" role="tabpanel" aria-labelledby="all-media-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;">
+                
+                
+
+                <div class="helper">
+                    <div class="alert alert-warning">
+                        Il n'y a aucun contenu disponible
+                    </div>
+                </div>
+                
+
+                <div class="d-flex flex-row">
+
+                    <div class="content">
+                    
+                    </div>
+                    
+
+                    <div class="selection d-none border-left pl-2 ml-auto">
+                        <div class="file mb-2"></div>
+                        
+                        <button class="btn btn-sm btn-danger">
+                            <i class="fa fa-trash"></i> supprimer
+                        </button>
+                    </div>
+                </div>
                
             </div>
             
@@ -95,28 +134,166 @@
                     let dropzone = uploadzone.find(".drop-area");
                     let filedetail = uploadzone.find(".file-detail");
 
+                    let gallery_content = $("#all-media-content");
+                    let selection_container = gallery_content.find(".selection")
+
                     input_file.on("change",function(e){
                         let file = e.target.files[0];
                         let filesize = file.size;
                         let filename = file.name;
-
-                        let reader = new FileReader();
-
-                        reader.addEventListener('load', function() {
-                            let img = $('<a href="" class="mr-2 mb-2"><img class="galery-item" src="'+reader.result+'" /></a>');
-                            $("#all-media-content").append(img);
-                            $('#myTab a[href="#all-media-content"]').tab('show')
-                        });
-                        reader.readAsDataURL(file);
                         uploadzone.addClass("has-file")
-                    })
 
+                        upload(file).then(data=>{
+
+                            let reader = new FileReader();
+                            gallery_content.addClass("loaded")
+
+                            reader.addEventListener('load', function() {
+                                let img = $('<a data-ref="'+data.payload._id.$oid+'" href="" class="gallery-item mr-1 mb-2 d-inline-block"><img src="'+reader.result+'" /></a>');
+                                $("#all-media-content .content").prepend(img);
+                                $('#myTab a[data-target="#all-media-content"]').tab('show')
+                            });
+                            reader.readAsDataURL(file);
+                        })
+
+                        
+                    })
 
                     dropzone.on({
                         "click":function(e){
                             input_file.click();
                         }
                     });
+
+                    
+
+                    $("#myTabContent").on("click", ".gallery-item",function(e){
+                        e.preventDefault();
+
+                        let obj = $(e.target)
+                        let parent = obj.parent()
+
+                        selection_container
+                        .find(".file")
+                        .html(obj.attr("width","200px").clone())
+                        
+                        selection_container
+                        .removeClass("d-none")
+                        .attr("data-ref",parent.attr("data-ref"))
+                    })
+
+                    selection_container.find("button").on({
+                        click:function(e){
+                            let _id = selection_container.attr("data-ref");
+
+                            remove_media(_id).then(d=>{
+                                 $(".gallery-item[data-ref="+_id+"]")
+                                .remove()
+
+                                selection_container
+                                .addClass("d-none")
+                                .removeAttr("data-ref")
+                            })
+                        }
+                    })
+
+
+                    $('a[data-toggle="tab"]').on('click', function (e) {
+                        /*e.target // newly activated tab
+                        e.relatedTarget // previous active tab
+                        */
+                        if(e.target.id == "all-media-tab"){
+                            if(gallery_content.hasClass("loaded")) return;
+
+                            load_gallery(20,0)
+                            .then(data=>{
+                                if(data.payload){
+                                    gallery_content.find(".content").html(data.payload);
+                                    gallery_content.addClass("loaded");
+                                }
+                            })
+                        }
+                    })
+
+                    function upload(file){
+                        return new Promise((resolve,reject)=>{
+
+                            let data = new FormData();
+                            data.append("file",file);
+
+                            $.ajax({
+                                type:"POST",
+                                url:'/admin/medias/upload',
+                                data:data,
+                                processData:false,
+                                contentType: false,
+                                success:function(data){
+                                    resolve(data)
+                                },
+                                error:function(e,c,f){
+                                    reject(c)
+                                },
+                                complete:function(){
+                                    
+                                }
+                            })
+                        })
+                    }
+
+
+                    function load_gallery(limit=20,offset=0){
+                        return new Promise((resolve,reject)=>{
+
+                            let data ={
+                                limit:limit,
+                                offset:offset
+                            }
+
+                            $.ajax({
+                                type:"GET",
+                                url:'/admin/medias',
+                                headers:{"accept":"text/html"},
+                                data:data,
+                                success:function(data){
+                                    resolve(data)
+                                },
+                                error:function(e,c,f){
+                                    reject(c)
+                                },
+                                complete:function(){
+                                    
+                                }
+                            })
+                        })
+                    }
+
+                    function remove_media(media_id){
+                        return new Promise((resolve,reject)=>{
+
+                            $.ajax({
+                                type:"DELETE",
+                                url:'/admin/medias/'+media_id,
+                                success:function(data){
+                                    resolve(data)
+                                },
+                                error:function(e,c,f){
+                                    reject(c)
+                                },
+                                complete:function(){
+                                    
+                                }
+                            })
+                        })
+                    }
+
+                    load_gallery(20,0)
+                    .then(data=>{
+                        if(data.payload){
+                            gallery_content.find(".content").html(data.payload);
+                            gallery_content.addClass("loaded");
+                        }
+                    })
+
                 });
             </script>
         {% endblock %}
