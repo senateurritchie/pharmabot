@@ -71,16 +71,13 @@
                     <h4>Paramètres</h4>
                     <hr>
 
-                    <div class="cover-area">
-                        <input accept="image/*" type="file" name="cover" style="display: none" />
+                    <div class="cover-area mb-2">
+                        <input type="hidden" name="cover"/>
                         <div class="img-preview"></div>
                     </div>
 
                     <div class="form-group" >
-
-                        
-
-                        <button type="button" class="btn btn-sm btn-primary cover-btn" data-toggle="modal" data-target="#media-insert">
+                        <button type="button" class="btn btn-sm btn-primary cover-btn-add">
                             <i class="fa fa-picture"></i> ajouter un cover
                         </button>
 
@@ -500,12 +497,6 @@
 {% block javascripts %}
     {{ super() }}
 
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-
     <script>
 
         jQuery(document).ready(function($){
@@ -517,12 +508,39 @@
             var modalInsert = $('#modal-insert');
             var modalRemove = $('#modal-remove');
             var modalUpdate = $('#modal-update');
+            var modalMediatheque = $('#media-insert');
+            let iframe = modalMediatheque.find('iframe')[0]
             
-            modalInsert.on('show.bs.modal', function () {
-                setTimeout(function(){
-                    modalInsert.find('input[name=title]').trigger("focus")
-                },500);
+
+            iframe.contentWindow.addEventListener("message",function(e){
+                if(e.origin == window.location.origin){
+                    let data = e.data;
+
+                    switch(data.action){
+                        case "set_quiz_cover":
+                            let area = modalInsert.find(".cover-area .img-preview");
+                            area.html("")
+                            let input_file = modalInsert.find(".cover-area input[name=cover]");
+                            input_file.val(data.payload._id)
+
+                            let img = $('<img class="w-100" src="'+data.payload.url+'" />');
+                            area.append(img);
+                            modalInsert.addClass("has-cover");
+
+                            modalMediatheque.modal("hide")
+                        break;
+                    }
+                }
             })
+            
+            modalMediatheque.on('show.bs.modal', function () {
+                modalInsert.modal("hide");
+            })
+
+            modalMediatheque.on('hidden.bs.modal', function () {
+                modalInsert.modal("show");
+            })
+
 
             var modalUpdateSetting = modalUpdate.find(".parametres-container");
             var setting_toolbar = modalUpdateSetting.find(".setting-toolbar");
@@ -938,8 +956,6 @@
             })
 
 
-
-
             $("body").on("click",".tool-delete",function(e){
                 e.preventDefault();
                 var tr = $(this).parents("tr:first");
@@ -999,50 +1015,33 @@
 
 
             // gestion du cover
-            let cover_btn = $(".cover-btn-add");
             let cover_btn_remove = $(".cover-btn-remove");
+            let cover_btn_add = $(".cover-btn-add");
 
-            
-
-            cover_btn.on({
+            cover_btn_add.on({
                 click:function(e){
-                    let modal = cover_btn.parents(".modal");
-                    let area = modal.find(".cover-area .img-preview");
-                    area.html("")
-                    let input_file = modal.find(".cover-area input[type=file]");
+                    modalMediatheque.modal("show")
 
-                    input_file.one("change",function(e){
-
-                        let file = e.target.files[0];
-                        let filesize = file.size;
-                        let filename = file.name;
-                        let reader = new FileReader();
-
-                        reader.addEventListener('load', function() {
-                            let img = $('<img class="w-100" src="'+reader.result+'" />');
-                            area.append(img);
-                            modal.addClass("has-cover");
-                        });
-
-                        reader.readAsDataURL(file);
-
-                    });
-
-                    input_file.click();
+                    iframe.contentWindow.postMessage({
+                        action:"open",
+                        use_for:"set_quiz_cover",
+                    },window.location.origin)
                 }
             })
 
             cover_btn_remove.on({
                 click:function(e){
-                    let modal = cover_btn.parents(".modal");
+                    let modal = cover_btn_remove.parents(".modal");
                     let area = modal.find(".cover-area .img-preview");
                     area.html("")
-                    let input_file = modal.find(".cover-area input[type=file]");
+                    let input_file = modal.find(".cover-area input[name=cover]");
                     input_file.val("");
                     modal.removeClass("has-cover");
-
                 }
             })
+
+
+            
 
 
             

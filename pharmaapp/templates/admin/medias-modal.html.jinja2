@@ -49,77 +49,82 @@
     </head>
 
     <body style="height: 100vh;overflow: hidden;">
-        
-        <ul class="nav nav-tabs mb-0" id="myTab" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active text-dark" id="upload-tab" data-toggle="tab" data-target="#upload-content" role="tab" aria-controls="upload-content" aria-selected="true">
-                    Charger un fichier
-                </a>
-            </li>
 
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="all-media-tab" data-toggle="tab" data-target="#all-media-content" role="tab" aria-controls="all-media-content" aria-selected="false">
-                    
-                    Choisir à partir de la galeries
-                </a>
-            </li>
+        <div role="tabpanel">
+            <ul class="nav nav-tabs mb-0" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active text-dark" id="upload-tab" data-toggle="tab" data-target="#upload-content" role="tab" aria-controls="upload-content" aria-selected="true">
+                        Charger un fichier
+                    </a>
+                </li>
 
-        </ul>
-        
-        <div class="tab-content pb-0" id="myTabContent" >
-
-            <div class="tab-pane fade show active pt-4 upload-area" id="upload-content" role="tabpanel" aria-labelledby="upload-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;" >
-
-                <div  class="drop-area d-flex flex-column justify-content-center align-items-center">
-                    <h3>
-                        Cliquer ici pour charger un fichier
-                    </h3>
-
-                    <div class="file-detail text-center">
-                        <i class="fa fa-file fa-5x"></i>
-                        <h4 class="file-name"></h4>
-                    </div>
-                </div>
-
-                <input class="d-none" type="file" name="file" accept="image/*" />
-                
-            </div>
-            
-            <div class="tab-pane fade pt-4" id="all-media-content" role="tabpanel" aria-labelledby="all-media-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;">
-                
-                
-
-                <div class="helper">
-                    <div class="alert alert-warning">
-                        Il n'y a aucun contenu disponible
-                    </div>
-                </div>
-                
-
-                <div class="d-flex flex-row">
-
-                    <div class="content">
-                    
-                    </div>
-                    
-
-                    <div class="selection d-none border-left pl-2 ml-auto">
-                        <div class="file mb-2"></div>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" id="all-media-tab" data-toggle="tab" data-target="#all-media-content" role="tab" aria-controls="all-media-content" aria-selected="false">
                         
-                        <button class="btn btn-sm btn-danger">
-                            <i class="fa fa-trash"></i> supprimer
-                        </button>
+                        Choisir à partir de la galeries
+                    </a>
+                </li>
+
+            </ul>
+            
+            <div class="tab-content pb-0" id="myTabContent" >
+
+                <div class="tab-pane active fade show pt-4 upload-area" id="upload-content" role="tabpanel" aria-labelledby="upload-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;" >
+
+                    <div  class="drop-area d-flex flex-column justify-content-center align-items-center">
+                        <h3>
+                            Cliquer ici pour charger un fichier
+                        </h3>
+
+                        <div class="file-detail text-center">
+                            <i class="fa fa-file fa-5x"></i>
+                            <h4 class="file-name"></h4>
+                        </div>
                     </div>
+
+                    <input class="d-none" type="file" name="file" accept="image/*" />
+                    
                 </div>
-               
+                
+                <div class="tab-pane fade pt-4" id="all-media-content" role="tabpanel" aria-labelledby="all-media-tab" style="height: 350px;overflow-x: hidden;overflow-y: auto;">
+                    
+                    
+
+                    <div class="helper">
+                        <div class="alert alert-warning">
+                            Il n'y a aucun contenu disponible
+                        </div>
+                    </div>
+                    
+
+                    <div class="d-flex flex-row">
+
+                        <div class="content">
+                        
+                        </div>
+                        
+
+                        <div class="selection d-none border-left pl-2 ml-auto">
+                            <div class="file mb-2"></div>
+                            
+                            <button class="btn btn-sm btn-danger delete">
+                                <i class="fa fa-trash"></i> supprimer
+                            </button>
+
+                            <button class="btn btn-sm btn-primary float-right ok">
+                                <i class="fa fa-check"></i> selectioner
+                            </button>
+                        </div>
+                    </div>
+                   
+                </div>
             </div>
             
         </div>
 
         {% block javascripts %}
-            <script type="text/javascript" src="{{ url_for('static', filename='admin/assets/scripts/main.js') }}"></script>
 
-             <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+            <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
     
             <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 
@@ -136,6 +141,7 @@
 
                     let gallery_content = $("#all-media-content");
                     let selection_container = gallery_content.find(".selection")
+                    let mediatheque_use_for = "file_selected"
 
                     input_file.on("change",function(e){
                         let file = e.target.files[0];
@@ -149,7 +155,7 @@
                             gallery_content.addClass("loaded")
 
                             reader.addEventListener('load', function() {
-                                let img = $('<a data-ref="'+data.payload._id.$oid+'" href="" class="gallery-item mr-1 mb-2 d-inline-block"><img src="'+reader.result+'" /></a>');
+                                let img = $('<a data-mime="'+data.payload.mime_type+'" data-ref="'+data.payload._id.$oid+'" href="" class="gallery-item mr-1 mb-2 d-inline-block"><img src="'+reader.result+'" /></a>');
                                 $("#all-media-content .content").prepend(img);
                                 $('#myTab a[data-target="#all-media-content"]').tab('show')
                             });
@@ -179,10 +185,13 @@
                         
                         selection_container
                         .removeClass("d-none")
-                        .attr("data-ref",parent.attr("data-ref"))
+                        .attr({
+                            "data-ref":parent.attr("data-ref"),
+                            "data-mime":parent.attr("data-mime"),
+                        })
                     })
 
-                    selection_container.find("button").on({
+                    selection_container.find("button.delete").on({
                         click:function(e){
                             let _id = selection_container.attr("data-ref");
 
@@ -193,12 +202,35 @@
                                 selection_container
                                 .addClass("d-none")
                                 .removeAttr("data-ref")
+                                .removeAttr("data-mime")
                             })
                         }
                     })
 
+                    selection_container.find("button.ok").on({
+                        click:function(e){
+                            let _id = selection_container.attr("data-ref");
+                            let mime_type = selection_container.attr("data-mime");
+                            let img = $(".gallery-item[data-ref="+_id+"]").find("img");
+                            selection_container
+                            .addClass("d-none")
+                            .removeAttr("data-ref")
+                            .removeAttr("data-mime")
 
-                    $('a[data-toggle="tab"]').on('click', function (e) {
+
+                            window.postMessage({
+                                action:mediatheque_use_for,
+                                payload:{
+                                    _id:_id,
+                                    url:img.attr("src"),
+                                    mime_type:mime_type,
+                                }
+                            },window.location.origin)
+                        }
+                    })
+
+                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+
                         /*e.target // newly activated tab
                         e.relatedTarget // previous active tab
                         */
@@ -286,11 +318,21 @@
                         })
                     }
 
-                    load_gallery(20,0)
-                    .then(data=>{
-                        if(data.payload){
-                            gallery_content.find(".content").html(data.payload);
-                            gallery_content.addClass("loaded");
+                    window.addEventListener("message",function(e){
+
+                        if(e.origin == window.location.origin){
+                            switch(e.data.action){
+                                case "open":
+                                    if(e.data.use_for){
+                                        mediatheque_use_for = e.data.use_for
+                                    }
+                                    $('#myTab a[data-target="#all-media-content"]').tab('show')
+                                break;
+
+                                case "close":
+
+                                break;
+                            }
                         }
                     })
 
