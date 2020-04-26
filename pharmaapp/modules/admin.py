@@ -317,7 +317,7 @@ def upload_media():
 	obj = {
 		"original_filename":name,
 		"filename":filename,
-		"mime_type":mime,
+		"mime_type":mime.split("/")[0],
 		"extension":ext,
 		"size":size
 	}
@@ -527,10 +527,51 @@ def get_quizz(quizz_id):
 	"""
 	on recherche un quizz
 	"""
-	survey = db.quizz.find_one({"_id":ObjectId(quizz_id)})
+	survey = db.quizz.aggregate([
+		{
+			"$match":{
+				"_id":ObjectId(quizz_id)
+			}
+		},
+		{
+			"$lookup":{
+				"from":"mediatheque",
+				"localField":"cover_id",
+				"foreignField":"_id",
+				"as":"cover"
+			}
+		},
+		{"$addFields":{"cover":{"$arrayElemAt":["$cover",0]}}},
+	])
 
-	if survey is None:
+	survey = [i for i in survey]
+
+	if len(survey) == 0:
 		return abort(404)
+
+	survey = survey[0]
+
+	if "cover" in survey:
+		survey["cover"]["url"] = url_for("static", filename="mediatheque/"+survey["cover"]["filename"])
+
+	if "good_resp_gif_ids" in survey:
+		survey["good_resp_gif"] = db.mediatheque.find({
+			"_id":{"$in":survey["good_resp_gif_ids"]}
+		})
+		survey["good_resp_gif"] = [i for i in survey["good_resp_gif"]]
+
+		for el in survey["good_resp_gif"]:
+			el["url"] = url_for("static", filename="mediatheque/"+el["filename"])
+
+	if "bad_resp_gif_ids" in survey:
+		survey["bad_resp_gif"] = db.mediatheque.find({
+			"_id":{"$in":survey["bad_resp_gif_ids"]}
+		})
+		survey["bad_resp_gif"] = [i for i in survey["bad_resp_gif"]]
+
+		for el in survey["bad_resp_gif"]:
+			el["url"] = url_for("static", filename="mediatheque/"+el["filename"])
+
 
 	del survey["users"]
 	del survey["create_by"]
@@ -869,6 +910,9 @@ def quizz_save(quizz_id=None):
 	
 	quizz_id = quizz_id if quizz_id is not None else request.form.get("quizz_id",None)
 	title = request.form.get("title","").strip()
+	good_resp_gif_ids = request.form.getlist("good_resp_gif")
+	bad_resp_gif_ids = request.form.getlist("bad_resp_gif")
+	cover_id = request.form.get("cover_id","").strip()
 	welcome_text = request.form.get("welcome_text","").strip()
 	end_text = request.form.get("end_text","").strip()
 	good_resp_msg = request.form.get("good_resp_msg","").strip()
@@ -899,21 +943,64 @@ def quizz_save(quizz_id=None):
 		if survey is None:
 			return abort(404)
 
+		update_obj = {
+			"title":title,
+			"welcome_text":welcome_text,
+			"end_text":end_text,
+			"good_resp_txt":good_resp_msg,
+			"bad_resp_txt":bad_resp_msg,
+			"slug":slug,
+			"is_active":is_active,
+			"is_stick":is_stick,
+			"notify_subcribers":notify_subcribers
+		}
+
+		if cover_id is not None:
+			cover_id = ObjectId(cover_id)
+			media = db.mediatheque.find_one({
+				"_id":cover_id,
+				"mime_type":"image",
+			})
+
+			if media is not None:
+				update_obj["cover_id"] = media["_id"]
+
+
+		if good_resp_gif_ids is not None:
+
+			_ids = [ObjectId(i) for i in good_resp_gif_ids]
+
+			medias = db.mediatheque.find({
+				"_id":{"$in":_ids},
+				"mime_type":"image",
+			})
+
+			medias = [i["_id"] for i in medias]
+
+			if len(medias):
+				update_obj["good_resp_gif_ids"] = medias
+
+
+		if bad_resp_gif_ids is not None:
+
+			_ids = [ObjectId(i) for i in bad_resp_gif_ids]
+
+			medias = db.mediatheque.find({
+				"_id":{"$in":_ids},
+				"mime_type":"image",
+			})
+
+			medias = [i["_id"] for i in medias]
+
+			if len(medias):
+				update_obj["bad_resp_gif_ids"] = medias
+
+
 		db.quizz.update_one({
 				"_id":survey["_id"]
 			},
 			{
-				"$set":{
-					"title":title,
-					"welcome_text":welcome_text,
-					"end_text":end_text,
-					"good_resp_txt":good_resp_msg,
-					"bad_resp_txt":bad_resp_msg,
-					"slug":slug,
-					"is_active":is_active,
-					"is_stick":is_stick,
-					"notify_subcribers":notify_subcribers
-				}
+				"$set":update_obj
 			}
 		)
 	else:
