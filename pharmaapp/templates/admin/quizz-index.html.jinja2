@@ -1184,6 +1184,7 @@
 
                         if(data.hasOwnProperty("good_resp_gif")){
                             let container = modalUpdate.find('.gif-container.good');
+                            container.html("")
                             let btn = container.find(".add-gif");
                            
                             for(let el of data.good_resp_gif){
@@ -1208,6 +1209,7 @@
 
                         if(data.hasOwnProperty("bad_resp_gif")){
                             let container = modalUpdate.find('.gif-container.bad');
+                            container.html("")
                             let btn = container.find(".add-gif");
                            
                             for(let el of data.bad_resp_gif){
