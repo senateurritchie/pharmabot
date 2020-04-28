@@ -2,6 +2,7 @@ pharmaapp/.env
 pharmaapp/dump/
 pharmaapp/ltr/
 pharmaapp/demo/
-pharmabot-env/   
+pharmabot-env/
+pharmaapp/static/mediatheque
 
 

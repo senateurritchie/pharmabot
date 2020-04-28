@@ -1174,6 +1174,7 @@
                             .attr('data-persisted','true');
 
                             let area = modalUpdate.find(".cover-area .img-preview");
+                            area.html("")
 
                             let img = $('<img class="w-100" src="'+data.cover.url+'" />');
                             area.append(img);
