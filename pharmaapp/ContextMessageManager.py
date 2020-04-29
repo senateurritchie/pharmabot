@@ -15,6 +15,7 @@ from bson.objectid import ObjectId
 from slugify import slugify
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
+from flask import url_for
 
 from .EventDispatcher import EventDispatcher
 from .FBSend import FBSend
@@ -649,7 +650,6 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				l'utilisateur vient de selectionner une reponse dans un quizz
 				"""
-				from flask import url_for
 
 				quizz = db.quizz.find_one({
 					"_id":self._user.last_quizz_id
