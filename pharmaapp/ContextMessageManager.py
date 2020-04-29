@@ -15,7 +15,6 @@ from bson.objectid import ObjectId
 from slugify import slugify
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
-from flask import url_for
 
 from .EventDispatcher import EventDispatcher
 from .FBSend import FBSend
@@ -763,12 +762,12 @@ class ContextMessageManager(EventDispatcher):
 						fbsend.sendMessage(self._user.psid,resp)
 
 						if filename :
-							filename = "mediatheque/{}".format(filename)
+							filename = "https://cipharmabot.herokuapp.com/static/mediatheque/{}".format(filename)
 							resp:dict = {
 								"attachment": {
-					            	"type": "image",
+					            	"type": "image",  
 					                "payload": {
-					                    "url": url_for("static", filename=filename, _external=True)
+					                    "url": filename
 					                }
 								}
 							}
@@ -856,12 +855,13 @@ class ContextMessageManager(EventDispatcher):
 
 
 							if filename:
-								filename = "mediatheque/{}".format(filename)
+								filename = "https://cipharmabot.herokuapp.com/static/mediatheque/{}".format(filename)
+
 								resp:dict = {
 									"attachment": {
 						            	"type": "image",
 						                "payload": {
-						                    "url": url_for("static", filename=filename, _external=True)
+						                    "url":filename
 						                }
 									}
 								}
@@ -947,12 +947,12 @@ class ContextMessageManager(EventDispatcher):
 
 					if media:
 						filename = media["filename"]
-						filename = "mediatheque/{}".format(filename)
+						filename = "https://cipharmabot.herokuapp.com/static/mediatheque/{}".format(filename)
 						resp:dict = {
 							"attachment": {
 				            	"type": "image",
 				                "payload": {
-				                    "url": url_for("static", filename=filename, _external=True)
+				                    "url": filename
 				                }
 							}
 						}
