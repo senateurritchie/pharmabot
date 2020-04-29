@@ -725,8 +725,11 @@ class ContextMessageManager(EventDispatcher):
 								"score":1
 							}
 
-							if len(quizz["good_resp_gif"]):
-								filename = random.choice(quizz["good_resp_gif"])["filename"]
+							if len(quizz["good_resp_gif_ids"]):
+								 
+								s_gif = random.choice(quizz["good_resp_gif_ids"])
+								media = db.mediatheque.find_one({"_id":s_gif})
+								filename = media["filename"]
 							
 							
 							text = "Bonne reponse"
@@ -740,8 +743,10 @@ class ContextMessageManager(EventDispatcher):
 							"""
 							mauvaise reponse
 							"""
-							if len(quizz["bad_resp_gif"]):
-								filename = random.choice(quizz["bad_resp_gif"])["filename"]
+							if len(quizz["bad_resp_gif_ids"]):
+								s_gif = random.choice(quizz["bad_resp_gif_ids"])
+								media = db.mediatheque.find_one({"_id":s_gif})
+								filename = media["filename"]
 						
 							
 							text = "Mauvaise reponse"
@@ -816,11 +821,15 @@ class ContextMessageManager(EventDispatcher):
 									}
 									fbsend.sendMessage(self._user.psid,resp)
 
-								if len(quizz["above_mean_gif"]):
-									filename = random.choice(quizz["above_mean_gif"])["filename"]
+								if len(quizz["above_mean_gif_ids"]):
+									s_gif = random.choice(quizz["above_mean_gif_ids"])
+									media = db.mediatheque.find_one({"_id":s_gif})
+									filename = media["filename"]
 
-								elif len(quizz["good_resp_gif"]):
-									filename = random.choice(quizz["good_resp_gif"])["filename"]
+								elif len(quizz["good_resp_gif_ids"]):
+									s_gif = random.choice(quizz["good_resp_gif_ids"])
+									media = db.mediatheque.find_one({"_id":s_gif})
+									filename = media["filename"]
 
 
 							else:
@@ -834,11 +843,15 @@ class ContextMessageManager(EventDispatcher):
 									}
 									fbsend.sendMessage(self._user.psid,resp)
 
-								if len(quizz["below_mean_gif"]):
-									filename = random.choice(quizz["below_mean_gif"])["filename"]
+								if len(quizz["below_mean_gif_ids"]):
+									s_gif = random.choice(quizz["below_mean_gif_ids"])
+									media = db.mediatheque.find_one({"_id":s_gif})
+									filename = media["filename"]
 
-								elif len(quizz["bad_resp_gif"]):
-									filename = random.choice(quizz["bad_resp_gif"])["filename"]
+								elif len(quizz["bad_resp_gif_ids"]):
+									s_gif = random.choice(quizz["bad_resp_gif_ids"])
+									media = db.mediatheque.find_one({"_id":s_gif})
+									filename = media["filename"]
 
 
 
@@ -930,7 +943,7 @@ class ContextMessageManager(EventDispatcher):
 					media = None
 
 					if "cover_id" in quizz:
-						media = db.mediatheque.find_one({"_id":quizz["_id"]})
+						media = db.mediatheque.find_one({"_id":quizz["cover_id"]})
 
 					if media:
 						filename = media["filename"]
