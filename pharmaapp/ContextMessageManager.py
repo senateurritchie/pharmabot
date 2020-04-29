@@ -191,6 +191,7 @@ class ContextMessageManager(EventDispatcher):
 		self.last_survey_offset = 0
 		self.last_quizz_id = None
 		self.last_quizz_offset = 0
+		self.last_quizz_score = 0
 		self.has_new_menu = False
 		self.survey_one_time_notif_token = None
 		self.quiz_one_time_notif_token = None
@@ -296,7 +297,7 @@ class ContextMessageManager(EventDispatcher):
 		data = {}
 		u_data = {}
 
-		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","pharmacy_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset","has_new_menu"]
+		u_key = ["currentLocation","currentPharmacie","currentZone","last_presence","rate","survey_one_time_notif_token","quiz_one_time_notif_token","pharmacy_one_time_notif_token","question_processing","last_survey_id","last_survey_offset","last_quizz_id","last_quizz_offset","last_quizz_score","has_new_menu"]
 
 		if payload is None:
 			for key in dir(self):
@@ -692,6 +693,9 @@ class ContextMessageManager(EventDispatcher):
 								if choice["_id"] == choice_id:
 									user_choice = choice
 
+									if quizz_player["finished_at"] is not None:
+										continue
+
 									if db.quizz_player_response.find_one({"quizz_player_id":quizz_player["_id"],"choice_id":choice["_id"]}) is None:
 
 										db.quizz_player_response.insert_one({
@@ -720,9 +724,14 @@ class ContextMessageManager(EventDispatcher):
 							"""
 							bonne reponse
 							"""
-							update_payload["$inc"] = {
-								"score":1
-							}
+							if quizz_player["finished_at"] is None:
+								update_payload["$inc"] = {
+									"score":1
+								}
+							else:
+								self.save({
+									"last_quizz_score":self._user.last_quizz_score+1,
+								})
 
 							if len(quizz["good_resp_gif_ids"]):
 								 
@@ -774,8 +783,6 @@ class ContextMessageManager(EventDispatcher):
 						}
 						fbsend.sendMessage(self._user.psid,resp)
 
-						
-						
 
 						db.quizz_player.update_one({
 							"_id":quizz_player["_id"]
@@ -798,24 +805,31 @@ class ContextMessageManager(EventDispatcher):
 									}
 								})
 
-							step = quizz_player["score"]/2
+							score = 0
+
+							if quizz_player["finished_at"] is None:
+								score = quizz_player["score"]
+							else:
+								score = self._user.last_quizz_score
+							
+							
+
+							step = score/2
 							text:str = ""
 							filename = None
 
-							if quizz_player["score"] == 0:
+							if score == 0:
 								text = "aucune bonne reponse"
 
-							elif quizz_player["score"] == 1:
+							elif score == 1:
 								text = "1 seule bonne reponse"
 
 							else:
-								text = "{} bonnes reponses".format(quizz_player["score"])
+								text = "{} bonnes reponses".format(score)
 
 
-							
 
-
-							if quizz_player["score"] >= len(quizz["questions"])//2 :
+							if score >= len(quizz["questions"])//2 :
 								"""
 								message pour une note au dessus de la moyenne
 								"""
@@ -988,6 +1002,7 @@ class ContextMessageManager(EventDispatcher):
 						"question_processing":"QUIZZ_STARTED",
 						"last_quizz_id":quizz["_id"],
 						"last_quizz_offset":0,
+						"last_quizz_score":0,
 					})
 
 					self._user.last_quizz_id = quizz["_id"]
