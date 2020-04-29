@@ -767,7 +767,7 @@ class ContextMessageManager(EventDispatcher):
 								}
 							}
 							fbsend.sendMessage(self._user.psid,resp)
-							
+
 
 						resp:dict = {
 							"text":text,
@@ -810,6 +810,12 @@ class ContextMessageManager(EventDispatcher):
 
 							else:
 								text = "{} bonnes reponses".format(quizz["score"])
+
+
+							resp:dict = {
+								"text":text,
+							}
+							fbsend.sendMessage(self._user.psid,resp)
 
 
 							if quizz["score"] >= len(quizz["questions"])//2 :
