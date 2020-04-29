@@ -729,8 +729,9 @@ class ContextMessageManager(EventDispatcher):
 									"score":1
 								}
 							else:
+								self._user.last_quizz_score = self._user.last_quizz_score+1
 								self.save({
-									"last_quizz_score":self._user.last_quizz_score+1,
+									"last_quizz_score":self._user.last_quizz_score,
 								})
 
 							if len(quizz["good_resp_gif_ids"]):
@@ -2656,7 +2657,7 @@ class ContextMessageManager(EventDispatcher):
 							"title":"🇨🇮 Covid19 Stats",
 							"payload":"COVID19_STATS"
 						},
-						
+
 
 						# {
 						# 	"content_type":"text",
