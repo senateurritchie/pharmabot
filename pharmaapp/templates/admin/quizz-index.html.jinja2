@@ -1269,7 +1269,7 @@
 
 
                         function render_gif(payload,container){
-                            container.html("")
+                            container.find(".gif-item").remove()
                             let btn = container.find(".add-gif");
                            
                             for(let el of payload){
