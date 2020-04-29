@@ -798,18 +798,18 @@ class ContextMessageManager(EventDispatcher):
 									}
 								})
 
-							step = quizz["score"]/2
+							step = quizz_player["score"]/2
 							text:str = ""
 							filename = None
 
-							if quizz["score"] == 0:
+							if quizz_player["score"] == 0:
 								text = "aucune bonne reponse"
 
-							elif quizz["score"] == 1:
+							elif quizz_player["score"] == 1:
 								text = "1 seule bonne reponse"
 
 							else:
-								text = "{} bonnes reponses".format(quizz["score"])
+								text = "{} bonnes reponses".format(quizz_player["score"])
 
 
 							resp:dict = {
@@ -818,7 +818,7 @@ class ContextMessageManager(EventDispatcher):
 							fbsend.sendMessage(self._user.psid,resp)
 
 
-							if quizz["score"] >= len(quizz["questions"])//2 :
+							if quizz_player["score"] >= len(quizz["questions"])//2 :
 								"""
 								message pour une note au dessus de la moyenne
 								"""
@@ -855,6 +855,7 @@ class ContextMessageManager(EventDispatcher):
 									s_gif = random.choice(quizz["below_mean_gif_ids"])
 									media = db.mediatheque.find_one({"_id":s_gif})
 									filename = media["filename"]
+									media
 
 								elif len(quizz["bad_resp_gif_ids"]):
 									s_gif = random.choice(quizz["bad_resp_gif_ids"])
