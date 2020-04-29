@@ -756,11 +756,6 @@ class ContextMessageManager(EventDispatcher):
 								text = text + "\r\n" + quizz["bad_resp_txt"]
 
 
-						resp:dict = {
-							"text":text,
-						}
-						fbsend.sendMessage(self._user.psid,resp)
-
 						if filename :
 							filename = "https://cipharmabot.herokuapp.com/static/mediatheque/{}".format(filename)
 							resp:dict = {
@@ -772,6 +767,14 @@ class ContextMessageManager(EventDispatcher):
 								}
 							}
 							fbsend.sendMessage(self._user.psid,resp)
+							
+
+						resp:dict = {
+							"text":text,
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
+						
 						
 
 						db.quizz_player.update_one({
