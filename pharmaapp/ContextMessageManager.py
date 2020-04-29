@@ -855,9 +855,9 @@ class ContextMessageManager(EventDispatcher):
 								fbsend.sendMessage(self._user.psid,resp)
 
 
-							if quizz["end_txt"]:
+							if quizz["end_text"]:
 								resp:dict = {
-									"text":quizz["end_txt"],
+									"text":quizz["end_text"],
 								}
 								fbsend.sendMessage(self._user.psid,resp)
 
@@ -951,9 +951,9 @@ class ContextMessageManager(EventDispatcher):
 						fbsend.sendMessage(self._user.psid,resp)
 
 
-					if quizz["welcome_txt"]:
+					if quizz["welcome_text"]:
 						resp:dict = {
-							"text":quizz["welcome_txt"],
+							"text":quizz["welcome_text"],
 						}
 						fbsend.sendMessage(self._user.psid,resp)
 
