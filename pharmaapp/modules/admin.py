@@ -614,6 +614,27 @@ def get_quizz(quizz_id):
 			el["url"] = url_for("static", filename="mediatheque/"+el["filename"])
 
 
+
+
+	if "above_mean_gif_ids" in survey:
+		survey["above_mean_gif"] = db.mediatheque.find({
+			"_id":{"$in":survey["above_mean_gif_ids"]}
+		})
+		survey["above_mean_gif"] = [i for i in survey["above_mean_gif"]]
+
+		for el in survey["above_mean_gif"]:
+			el["url"] = url_for("static", filename="mediatheque/"+el["filename"])
+
+	if "below_mean_gif_ids" in survey:
+		survey["below_mean_gif"] = db.mediatheque.find({
+			"_id":{"$in":survey["below_mean_gif_ids"]}
+		})
+		survey["below_mean_gif"] = [i for i in survey["below_mean_gif"]]
+
+		for el in survey["below_mean_gif"]:
+			el["url"] = url_for("static", filename="mediatheque/"+el["filename"])
+
+
 	del survey["users"]
 	del survey["create_by"]
 	del survey["create_at"]
