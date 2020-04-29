@@ -2656,12 +2656,13 @@ class ContextMessageManager(EventDispatcher):
 							"title":"🇨🇮 Covid19 Stats",
 							"payload":"COVID19_STATS"
 						},
+						
 
-						{
-							"content_type":"text",
-							"title":"📊 Sondages",
-							"payload":"SURVEY_LIST"
-						},
+						# {
+						# 	"content_type":"text",
+						# 	"title":"📊 Sondages",
+						# 	"payload":"SURVEY_LIST"
+						# },
 						{
 							"content_type":"text",
 							"title":"🏆 Quizz",

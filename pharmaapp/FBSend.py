@@ -110,11 +110,11 @@ class FBSend:
 				                    "title": "Nouvelle recherche 🔎",
 				                    "payload": "MAIN_MENU",
 				                },
-				                {
-									"type":"postback",
-									"title":"Sondages 📊",
-									"payload":"SURVEY_LIST"
-								},
+				    #             {
+								# 	"type":"postback",
+								# 	"title":"Sondages 📊",
+								# 	"payload":"SURVEY_LIST"
+								# },
 								{
 									"type":"postback",
 									"title":"Quizz 🏆",
