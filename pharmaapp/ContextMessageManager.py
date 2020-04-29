@@ -830,16 +830,21 @@ class ContextMessageManager(EventDispatcher):
 
 
 
+							resp:dict = {
+								"text":text,
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+
 							if score >= len(quizz["questions"])//2 :
 								"""
 								message pour une note au dessus de la moyenne
 								"""
-
 								if "above_mean_txt" in quizz and quizz["above_mean_txt"]:
 									resp:dict = {
 										"text":quizz["above_mean_txt"],
 									}
 									fbsend.sendMessage(self._user.psid,resp)
+
 
 								if len(quizz["above_mean_gif_ids"]):
 									s_gif = random.choice(quizz["above_mean_gif_ids"])
@@ -851,12 +856,10 @@ class ContextMessageManager(EventDispatcher):
 									media = db.mediatheque.find_one({"_id":s_gif})
 									filename = media["filename"]
 
-
 							else:
 								"""
 								message pour une note en dessous de la moyenne
 								"""
-
 								if "below_mean_txt" in quizz and quizz["below_mean_txt"]:
 									resp:dict = {
 										"text":quizz["below_mean_txt"],
@@ -890,10 +893,6 @@ class ContextMessageManager(EventDispatcher):
 								fbsend.sendMessage(self._user.psid,resp)
 
 
-							resp:dict = {
-								"text":text,
-							}
-							fbsend.sendMessage(self._user.psid,resp)
 
 
 							if quizz["end_text"]:
