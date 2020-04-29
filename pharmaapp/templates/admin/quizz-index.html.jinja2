@@ -79,6 +79,10 @@
                     <button type="button" class="btn btn-sm btn-primary" data-dismiss="modal" aria-label="Close">
                         Quitter
                     </button>
+
+                    <button type="button" class="btn btn-sm btn-primary files-synchro">
+                        <i class="fa fa-sync-alt"></i> Synchronisation
+                    </button>
                 </div>
             </div>
         </div>
@@ -144,7 +148,7 @@
                             </div>
                             
                             <div class="form-group">
-                                <div class="gif-container d-flex flex-row flex-wrap mb-2">
+                                <div class="gif-container good d-flex flex-row flex-wrap mb-2">
                                     <a data-name="good_resp_gif" class="gif-item-placeholder add-gif mr-1 mb-1" href="">
                                         <div class="d-flex flex-column justify-content-center align-items-center">
                                             <i class="fa fa-plus"></i>
@@ -164,7 +168,7 @@
 
                             <div class="form-group">
 
-                                <div class="gif-container d-flex flex-row flex-wrap mb-2">
+                                <div class="gif-container bad d-flex flex-row flex-wrap mb-2">
                                     <a data-name="bad_resp_gif" class="gif-item-placeholder add-gif d-inline-block mr-1 mb-1" href="">
                                         <div class="d-flex flex-column justify-content-center align-items-center">
                                             <i class="fa fa-plus"></i>
@@ -173,6 +177,43 @@
                                     </a>
                                 </div>
 
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2 border-bottom">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="above_mean_msg">Au dessus de la moyenne:</label>
+                                <textarea name="above_mean_msg" class="form-control" id="above_mean_msg" placeholder="message..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="gif-container good gif-mean d-flex flex-row flex-wrap mb-2">
+                                    <a data-name="above_mean_gif" class="gif-item-placeholder add-gif mr-1 mb-1" href="">
+                                        <div class="d-flex flex-column justify-content-center align-items-center">
+                                            <i class="fa fa-plus"></i>
+                                             GIF
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="below_mean_msg">En dessous de la moyenne:</label>
+                                <textarea name="below_mean_msg"  class="form-control" id="below_mean_msg" placeholder="message..."></textarea>
+                            </div>
+
+                            <div class="gif-container bad gif-mean d-flex flex-row flex-wrap mb-2">
+                                <a data-name="below_mean_gif" class="gif-item-placeholder add-gif d-inline-block mr-1 mb-1" href="">
+                                    <div class="d-flex flex-column justify-content-center align-items-center">
+                                        <i class="fa fa-plus"></i>
+                                         GIF
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -347,6 +388,44 @@
                                     </div>
                                 </div>
 
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-2 border-bottom">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="above_mean_msg2">Au dessus de la moyenne:</label>
+                                    <textarea name="above_mean_msg" class="form-control" id="above_mean_msg2" placeholder="message..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="gif-container good gif-mean d-flex flex-row flex-wrap mb-2">
+                                        <a data-name="above_mean_gif" class="gif-item-placeholder add-gif mr-1 mb-1" href="">
+                                            <div class="d-flex flex-column justify-content-center align-items-center">
+                                                <i class="fa fa-plus"></i>
+                                                 GIF
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="below_mean_msg2">En dessous de la moyenne:</label>
+                                    <textarea name="below_mean_msg"  class="form-control" id="below_mean_msg2" placeholder="message..."></textarea>
+                                </div>
+
+                                <div class="gif-container bad gif-mean d-flex flex-row flex-wrap mb-2">
+                                    <a data-name="below_mean_gif" class="gif-item-placeholder add-gif d-inline-block mr-1 mb-1" href="">
+                                        <div class="d-flex flex-column justify-content-center align-items-center">
+                                            <i class="fa fa-plus"></i>
+                                             GIF
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -671,7 +750,14 @@
                         break;
                     }
                 }
-            })
+            });
+
+            modalMediatheque.find(".files-synchro").on("click",function(e){
+                iframe.contentWindow.postMessage({
+                    action:"sync",
+                    use_for:"sync",
+                },window.location.origin)
+            });
 
             modalInsert.on('shown.bs.modal', function () {
                 modalInsert.addClass("active");
@@ -1182,12 +1268,11 @@
                         }
 
 
-                        if(data.hasOwnProperty("good_resp_gif")){
-                            let container = modalUpdate.find('.gif-container.good');
+                        function render_gif(payload,container){
                             container.html("")
                             let btn = container.find(".add-gif");
                            
-                            for(let el of data.good_resp_gif){
+                            for(let el of payload){
 
                                 if(container.find('div[data-ref='+el._id.$oid+']').length == 0){
                                     let tpl = `
@@ -1207,31 +1292,27 @@
                         }
 
 
-                        if(data.hasOwnProperty("bad_resp_gif")){
-                            let container = modalUpdate.find('.gif-container.bad');
-                            container.html("")
-                            let btn = container.find(".add-gif");
-                           
-                            for(let el of data.bad_resp_gif){
-
-                                if(container.find('div[data-ref='+el._id.$oid+']').length == 0){
-                                    let tpl = `
-                                        <div data-persisted="true" data-ref="${el._id.$oid}" href="" class="gif-item  mr-1 mb-1">
-                                            <a href="" class="trash">
-                                                <i class="fa fa-times"></i>
-                                            </a>
-                                            <input type="hidden" name="${btn.data('name')}" value="${el._id.$oid}" />
-                                            <img src="${el.url}" />
-                                        </div>
-                                    `;
-                                    let item = $(tpl)
-
-                                    container.append(item);   
-                                    
-                                }
-                            }
+                        if(data.hasOwnProperty("good_resp_gif")){
+                            let container = modalUpdate.find('.gif-container.good');
+                            render_gif(data.good_resp_gif,container);
                         }
 
+
+                        if(data.hasOwnProperty("bad_resp_gif")){
+                            let container = modalUpdate.find('.gif-container.bad');
+                            render_gif(data.bad_resp_gif,container);
+                        }
+
+
+                        if(data.hasOwnProperty("above_mean_gif")){
+                            let container = modalUpdate.find('.gif-mean.good');
+                            render_gif(data.above_mean_gif,container);
+                        }
+
+                        if(data.hasOwnProperty("below_mean_gif")){
+                            let container = modalUpdate.find('.gif-mean.bad');
+                            render_gif(data.below_mean_gif,container);
+                        }
 
 
                         if(data.published_at != null){

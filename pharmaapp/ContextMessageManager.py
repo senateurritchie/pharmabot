@@ -479,9 +479,6 @@ class ContextMessageManager(EventDispatcher):
 					delta = datetime.datetime.utcnow() - opts["last_request_time"]
 					if delta.seconds//60 < 10:
 						in_cache = True
-
-
-						print('...........on charge depuis le cache....................')
 						
 
 
@@ -652,6 +649,7 @@ class ContextMessageManager(EventDispatcher):
 				"""
 				l'utilisateur vient de selectionner une reponse dans un quizz
 				"""
+				from flask import url_for
 
 				quizz = db.quizz.find_one({
 					"_id":self._user.last_quizz_id
@@ -717,6 +715,7 @@ class ContextMessageManager(EventDispatcher):
 						}
 
 						text:str = ""
+						filename:str = None
 
 						if user_choice["_id"] == true_answer["_id"]:
 							"""
@@ -726,6 +725,10 @@ class ContextMessageManager(EventDispatcher):
 								"score":1
 							}
 
+							if len(quizz["good_resp_gif"]):
+								filename = random.choice(quizz["good_resp_gif"])["filename"]
+							
+							
 							text = "Bonne reponse"
 
 							if user_choice["autoresponder"]:
@@ -737,6 +740,10 @@ class ContextMessageManager(EventDispatcher):
 							"""
 							mauvaise reponse
 							"""
+							if len(quizz["bad_resp_gif"]):
+								filename = random.choice(quizz["bad_resp_gif"])["filename"]
+						
+							
 							text = "Mauvaise reponse"
 
 							if user_choice["autoresponder"]:
@@ -749,6 +756,19 @@ class ContextMessageManager(EventDispatcher):
 							"text":text,
 						}
 						fbsend.sendMessage(self._user.psid,resp)
+
+						if filename :
+							filename = "mediatheque/{}".format(filename)
+							resp:dict = {
+								"attachment": {
+					            	"type": "image",
+					                "payload": {
+					                    "url": url_for("static", filename=filename, _external=True)
+					                }
+								}
+							}
+							fbsend.sendMessage(self._user.psid,resp)
+						
 
 						db.quizz_player.update_one({
 							"_id":quizz_player["_id"]
@@ -771,23 +791,93 @@ class ContextMessageManager(EventDispatcher):
 									}
 								})
 
-							
-							resp:dict = {
-								"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
-							}
-							fbsend.sendMessage(self._user.psid,resp)
+							step = quizz["score"]/2
+							text:str = ""
+							filename = None
 
-							resp:dict = {
-								"attachment": {
-							    	"type":"template",
-							      	"payload": {
-							        	"template_type":"one_time_notif_req",
-							        	"title":"Quizz Alerte",
-							        	"payload":"OPTIN_QUIZZ_ALERT"
-							      }
-							    }
-							}
-							fbsend.sendMessage(self._user.psid,resp)
+							if quizz["score"] == 0:
+								text = "aucune bonne reponse"
+
+							elif quizz["score"] == 1:
+								text = "1 seule bonne reponse"
+
+							else:
+								text = "{} bonnes reponses".format(quizz["score"])
+
+
+							if quizz["score"] >= len(quizz["questions"])//2 :
+								"""
+								message pour une note au dessus de la moyenne
+								"""
+
+								if "above_mean_txt" in quizz and quizz["above_mean_txt"]:
+									resp:dict = {
+										"text":quizz["above_mean_txt"],
+									}
+									fbsend.sendMessage(self._user.psid,resp)
+
+								if len(quizz["above_mean_gif"]):
+									filename = random.choice(quizz["above_mean_gif"])["filename"]
+
+								elif len(quizz["good_resp_gif"]):
+									filename = random.choice(quizz["good_resp_gif"])["filename"]
+
+
+							else:
+								"""
+								message pour une note en dessous de la moyenne
+								"""
+
+								if "below_mean_txt" in quizz and quizz["below_mean_txt"]:
+									resp:dict = {
+										"text":quizz["below_mean_txt"],
+									}
+									fbsend.sendMessage(self._user.psid,resp)
+
+								if len(quizz["below_mean_gif"]):
+									filename = random.choice(quizz["below_mean_gif"])["filename"]
+
+								elif len(quizz["bad_resp_gif"]):
+									filename = random.choice(quizz["bad_resp_gif"])["filename"]
+
+
+
+							if filename:
+								filename = "mediatheque/{}".format(filename)
+								resp:dict = {
+									"attachment": {
+						            	"type": "image",
+						                "payload": {
+						                    "url": url_for("static", filename=filename, _external=True)
+						                }
+									}
+								}
+								fbsend.sendMessage(self._user.psid,resp)
+
+
+							if quizz["end_txt"]:
+								resp:dict = {
+									"text":quizz["end_txt"],
+								}
+								fbsend.sendMessage(self._user.psid,resp)
+
+							
+							# resp:dict = {
+							# 	"text":"merci d'avoir participé a ce quizz\r\npour ne rien manquer, abonne toi pour être informé pour les prochains quizz."
+							# }
+							# fbsend.sendMessage(self._user.psid,resp)
+
+							# resp:dict = {
+							# 	"attachment": {
+							#     	"type":"template",
+							#       	"payload": {
+							#         	"template_type":"one_time_notif_req",
+							#         	"title":"Quizz Alerte",
+							#         	"payload":"OPTIN_QUIZZ_ALERT"
+							#       }
+							#     }
+							# }
+							# fbsend.sendMessage(self._user.psid,resp)
 							self.save({
 								"question_processing":None,
 							})
@@ -837,10 +927,36 @@ class ContextMessageManager(EventDispatcher):
 
 				if quizz:
 
-					resp:dict = {
-						"text":"[Enquête 📊]\r\n"+quizz["title"],
-					}
-					fbsend.sendMessage(self._user.psid,resp)
+					media = None
+
+					if "cover_id" in quizz:
+						media = db.mediatheque.find_one({"_id":quizz["_id"]})
+
+					if media:
+						filename = media["filename"]
+						filename = "mediatheque/{}".format(filename)
+						resp:dict = {
+							"attachment": {
+				            	"type": "image",
+				                "payload": {
+				                    "url": url_for("static", filename=filename, _external=True)
+				                }
+							}
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+					else:
+						resp:dict = {
+							"text":"[Enquête 📊]\r\n"+quizz["title"],
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
+
+					if quizz["welcome_txt"]:
+						resp:dict = {
+							"text":quizz["welcome_txt"],
+						}
+						fbsend.sendMessage(self._user.psid,resp)
+
 
 					self.save({
 						"question_processing":"QUIZZ_STARTED",

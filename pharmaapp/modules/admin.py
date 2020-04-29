@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 import pymongo
 from bson.objectid import ObjectId
 import functools
+import mimetypes
+from pathlib import Path
 
 from ..modules.security import login_guard,is_granted
 from ..OfficineUpdater import OfficineUpdater
@@ -168,6 +170,47 @@ def medias():
 
 	return render('admin/medias-index.html.jinja2', data=data)
 
+@bp.route("/medias/sync", methods=('POST',))
+@is_granted("role_admin")
+@login_guard
+def medias_sync():
+	"""
+	la gestion des medias dans le chatbot
+	"""
+	from glob import glob
+	path = Path(__file__).parent.resolve() / "../static/mediatheque/*.*"
+	result = {"status":False,"sync":0}
+
+	for el in glob(str(path)):
+		name = os.path.basename(el)
+		mime = mimetypes.guess_type(name)[0]
+		ext = name[-3:]
+
+		if db.mediatheque.find_one({"filename":name}) is not None:
+			continue
+
+		result["status"] = True
+
+		with open(el,"rb") as file:
+			size = file.seek(0,2)
+			size = file.tell()
+			file.seek(0,0)
+
+			obj = {
+				"original_filename":name,
+				"filename":name,
+				"mime_type":mime.split("/")[0],
+				"extension":ext,
+				"size":size
+			}
+			db.mediatheque.insert_one(obj)
+			result["sync"] += 1
+
+	r = response(json.dumps(result))
+	r.headers["content-type"] = "application/json"
+	return r,200
+
+
 @bp.route("/mediatheque/<media_type>", methods=('GET',))
 @is_granted("role_admin")
 @login_guard
@@ -239,7 +282,6 @@ def delete_media(media_id):
 	"""
 	suppression d'un media
 	"""
-	from pathlib import Path
 	media = db.mediatheque.find_one({
 		"_id":ObjectId(media_id)
 	})
@@ -265,8 +307,7 @@ def upload_media():
 	"""
 	ajout d'un media dans la base de donnée
 	"""
-	import mimetypes
-	from pathlib import Path
+	
 	result = {"status":False}
 	file = request.files.get("file")
 
@@ -910,6 +951,11 @@ def quizz_save(quizz_id=None):
 	
 	quizz_id = quizz_id if quizz_id is not None else request.form.get("quizz_id",None)
 	title = request.form.get("title","").strip()
+	above_mean_gif_ids = request.form.getlist("above_mean_gif")
+	below_mean_gif_ids = request.form.getlist("below_mean_gif")
+	above_mean_msg = request.form.get("above_mean_msg","").strip()
+	below_mean_msg = request.form.get("below_mean_msg","").strip()
+
 	good_resp_gif_ids = request.form.getlist("good_resp_gif")
 	bad_resp_gif_ids = request.form.getlist("bad_resp_gif")
 	cover_id = request.form.get("cover_id","").strip()
@@ -949,6 +995,8 @@ def quizz_save(quizz_id=None):
 			"end_text":end_text,
 			"good_resp_txt":good_resp_msg,
 			"bad_resp_txt":bad_resp_msg,
+			"above_mean_txt":above_mean_msg,
+			"below_mean_txt":below_mean_msg,
 			"slug":slug,
 			"is_active":is_active,
 			"is_stick":is_stick,
@@ -967,6 +1015,9 @@ def quizz_save(quizz_id=None):
 
 
 		if good_resp_gif_ids is not None:
+			"""
+			les gif pour les bonnes reponses
+			"""
 
 			_ids = [ObjectId(i) for i in good_resp_gif_ids]
 
@@ -982,6 +1033,9 @@ def quizz_save(quizz_id=None):
 
 
 		if bad_resp_gif_ids is not None:
+			"""
+			les gif pour les mauvaises reponses
+			"""
 
 			_ids = [ObjectId(i) for i in bad_resp_gif_ids]
 
@@ -994,6 +1048,42 @@ def quizz_save(quizz_id=None):
 
 			if len(medias):
 				update_obj["bad_resp_gif_ids"] = medias
+
+
+		if above_mean_gif_ids is not None:
+			"""
+			les gif pour les scores au dessus de la moyenne
+			"""
+
+			_ids = [ObjectId(i) for i in above_mean_gif_ids]
+
+			medias = db.mediatheque.find({
+				"_id":{"$in":_ids},
+				"mime_type":"image",
+			})
+
+			medias = [i["_id"] for i in medias]
+
+			if len(medias):
+				update_obj["above_mean_gif_ids"] = medias
+
+
+		if below_mean_gif_ids is not None:
+			"""
+			les gif pour les scores en dessous de la moyenne
+			"""
+
+			_ids = [ObjectId(i) for i in below_mean_gif_ids]
+
+			medias = db.mediatheque.find({
+				"_id":{"$in":_ids},
+				"mime_type":"image",
+			})
+
+			medias = [i["_id"] for i in medias]
+
+			if len(medias):
+				update_obj["below_mean_gif_ids"] = medias
 
 
 		db.quizz.update_one({
@@ -1040,11 +1130,15 @@ def quizz_save(quizz_id=None):
 
 				questions.append(question)
 
-			_id = db.quizz.insert_one({
+
+			insert_obj = {
 				"create_by":g.user["_id"],
 				"title":title,
+				"cover_id":None,
 				"good_resp_txt":good_resp_msg,
 				"bad_resp_txt":bad_resp_msg,
+				"good_resp_gif":[],
+				"bad_resp_gif":[],
 				"slug":slug,
 				"welcome_text":welcome_text,
 				"end_text":end_text,
@@ -1056,7 +1150,95 @@ def quizz_save(quizz_id=None):
 				"published_at":None,
 				"users":[],
 				"questions":questions,
-			}).inserted_id
+			}
+
+			if cover_id is not None:
+				"""
+				enregistrement de l'image de couverture
+				"""
+				cover_id = ObjectId(cover_id)
+				media = db.mediatheque.find_one({
+					"_id":cover_id,
+					"mime_type":"image",
+				})
+
+				if media is not None:
+					insert_obj["cover_id"] = media["_id"]
+
+			
+			if good_resp_gif_ids is not None:
+				"""
+				enregistrement des gif
+				"""
+
+				_ids = [ObjectId(i) for i in good_resp_gif_ids]
+
+				medias = db.mediatheque.find({
+					"_id":{"$in":_ids},
+					"mime_type":"image",
+				})
+
+				medias = [i["_id"] for i in medias]
+
+				if len(medias):
+					insert_obj["good_resp_gif_ids"] = medias
+
+
+			if bad_resp_gif_ids is not None:
+				"""
+				enregistrement des gif
+				"""
+
+				_ids = [ObjectId(i) for i in bad_resp_gif_ids]
+
+				medias = db.mediatheque.find({
+					"_id":{"$in":_ids},
+					"mime_type":"image",
+				})
+
+				medias = [i["_id"] for i in medias]
+
+				if len(medias):
+					insert_obj["bad_resp_gif_ids"] = medias
+
+
+			if above_mean_gif_ids is not None:
+				"""
+				les gif pour les scores au dessus de la moyenne
+				"""
+
+				_ids = [ObjectId(i) for i in above_mean_gif_ids]
+
+				medias = db.mediatheque.find({
+					"_id":{"$in":_ids},
+					"mime_type":"image",
+				})
+
+				medias = [i["_id"] for i in medias]
+
+				if len(medias):
+					insert_obj["above_mean_gif_ids"] = medias
+
+
+			if below_mean_gif_ids is not None:
+				"""
+				les gif pour les scores en dessous de la moyenne
+				"""
+
+				_ids = [ObjectId(i) for i in below_mean_gif_ids]
+
+				medias = db.mediatheque.find({
+					"_id":{"$in":_ids},
+					"mime_type":"image",
+				})
+
+				medias = [i["_id"] for i in medias]
+
+				if len(medias):
+					insert_obj["below_mean_gif_ids"] = medias
+
+
+			_id = db.quizz.insert_one(insert_obj).inserted_id
 
 	if is_xhr:
 		return "",200

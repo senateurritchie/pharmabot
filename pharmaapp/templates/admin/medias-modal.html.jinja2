@@ -329,9 +329,37 @@
                                     $('#myTab a[data-target="#all-media-content"]').tab('show')
                                 break;
 
+                                case "sync":
+                                    $.ajax({
+                                        type:"POST",
+                                        url:'/admin/medias/sync',
+                                        success:function(data){
+                                            if(data.status){
+                                                if(data.sync > 0){
+                                                    load_gallery(20,0)
+                                                    .then(d=>{
+                                                        if(d.payload){
+                                                            gallery_content.find(".content").html(d.payload);
+                                                            gallery_content.addClass("loaded");
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                        },
+                                        error:function(e,c,f){
+                                            
+                                        },
+                                        complete:function(){
+                                            
+                                        }
+                                    })
+                                break;
+
                                 case "close":
 
                                 break;
+
+
                             }
                         }
                     })
