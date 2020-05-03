@@ -333,8 +333,8 @@ class OfficineUpdater(EventDispatcher):
 			"2 plateaux","abobo","abobo pk 18","abobodoume","adjame","adjouffou",
 			"anyama","attecoube","bingerville","cocody","locodjoro","marcory",
 			"plateau","port bouet","riviera","treichville","vridi","williamsville",
-			"yopougon","koumassi","gonzaq","anoumabo"
-		]
+			"yopougon","koumassi","gonzaq","anoumabo",'abata',"akouedo","faya"
+		] 
 
 		if loc.lower() in ZONE_A:
 			return 1
